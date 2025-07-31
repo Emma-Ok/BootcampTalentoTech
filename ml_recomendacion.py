@@ -57,7 +57,7 @@ if st.button("Recomendar"):
     st.subheader("📊 Plataformas Recomendadas")
     st.dataframe(ranking)
 
-    # Gráfico
+    # #Gráfico
     fig, ax = plt.subplots(figsize=(8, 4))
     sns.barplot(data=ranking, x="PLATAFORMA_EDUCATIVA", y="Frecuencia", palette="husl", ax=ax)
     ax.set_title("Ranking de Plataformas Recomendadas")
