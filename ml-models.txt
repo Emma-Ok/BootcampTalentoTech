@@ -1,0 +1,39 @@
+ 2. Recomendación de plataforma personalizada (modelo tipo Recommender)
+🎯 Problema:
+¿Qué plataforma recomendarle a un nuevo beneficiario según su perfil?
+
+✅ Enfoque:
+Modelo de recomendación basado en contenido:
+
+Entradas: Edad, género, ubicación
+
+Salida: Ranking de plataformas
+
+🛠 Técnicas posibles:
+Distancias de similitud (coseno, Jaccard)
+
+Modelos tipo kNN + filtrado
+
+Modelos de ranking (ej. LightFM o XGBoostRanker)
+
+🧱 3. Segmentación (Clustering) de perfiles de beneficiarios
+🎯 Problema:
+¿Qué grupos de usuarios existen y qué los caracteriza?
+
+✅ Enfoque:
+Modelo no supervisado (no hay una variable a predecir)
+
+Técnicas:
+
+K-Means
+
+DBSCAN (detección de perfiles atípicos)
+
+PCA + Clustering
+
+Usas: Edad, género, región, plataforma
+
+📈 Aplicación:
+Crear perfiles tipo:
+Ej: "Jóvenes entre 20–25 años, hombres, en Antioquia, usan Platzi"
+
