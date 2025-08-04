@@ -29,7 +29,7 @@ preprocesador = ColumnTransformer([
 ])
 X_proc = preprocesador.fit_transform(X)
 
-modelo_knn = NearestNeighbors(n_neighbors=5, metric='cosine')
+modelo_knn = NearestNeighbors(n_neighbors=50, metric='cosine')
 modelo_knn.fit(X_proc)
 
 # Función de recomendación
@@ -66,6 +66,7 @@ if st.button("Recomendar"):
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
     ax.legend(["Te recomendamos estas plataformas"])
     st.pyplot(fig)
+
 
 
 
