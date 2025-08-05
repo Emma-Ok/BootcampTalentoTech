@@ -916,47 +916,149 @@ if 'df' not in st.session_state:
     st.session_state.df = df
 
 # Agregar sidebar para filtros globales
-st.sidebar.header("🔧 Filtros Globales")
+st.sidebar.header("🔧 Filtros Interactivos")
 
-# Filtro por departamento
-departamentos_disponibles = ['Todos'] + sorted(df['DEPARTAMENTO'].unique().tolist())
-depto_seleccionado = st.sidebar.selectbox(
-    "Seleccionar Departamento:",
-    departamentos_disponibles
-)
+# Crear un expander para filtros avanzados
+with st.sidebar.expander("🎯 Filtros Avanzados", expanded=True):
+    # Filtro por múltiples departamentos
+    st.subheader("📍 Departamentos")
+    departamentos_disponibles = sorted(df['DEPARTAMENTO'].unique().tolist())
+    
+    # Checkbox para seleccionar todos los departamentos
+    todos_deptos = st.checkbox("Seleccionar todos los departamentos", value=True)
+    
+    if todos_deptos:
+        deptos_seleccionados = departamentos_disponibles
+    else:
+        deptos_seleccionados = st.multiselect(
+            "Seleccionar departamentos específicos:",
+            departamentos_disponibles,
+            default=departamentos_disponibles[:5]  # Seleccionar los primeros 5 por defecto
+        )
 
-# Filtro por plataforma
-plataformas_disponibles = ['Todas'] + sorted(df['PLATAFORMA_EDUCATIVA'].unique().tolist())
-plataforma_seleccionada = st.sidebar.selectbox(
-    "Seleccionar Plataforma:",
-    plataformas_disponibles
-)
+    # Filtro por múltiples plataformas
+    st.subheader("💻 Plataformas Educativas")
+    plataformas_disponibles = sorted(df['PLATAFORMA_EDUCATIVA'].unique().tolist())
+    
+    # Checkbox para seleccionar todas las plataformas
+    todas_plataformas = st.checkbox("Seleccionar todas las plataformas", value=True)
+    
+    if todas_plataformas:
+        plataformas_seleccionadas = plataformas_disponibles
+    else:
+        plataformas_seleccionadas = st.multiselect(
+            "Seleccionar plataformas específicas:",
+            plataformas_disponibles,
+            default=plataformas_disponibles
+        )
 
-# Filtro por rango de edad
-edad_min, edad_max = st.sidebar.slider(
-    "Rango de Edad:",
-    min_value=int(df['EDAD'].min()),
-    max_value=int(df['EDAD'].max()),
-    value=(int(df['EDAD'].min()), int(df['EDAD'].max()))
-)
+    # Filtro por género con opción múltiple
+    st.subheader("👤 Género")
+    generos_disponibles = sorted(df['GENERO'].unique().tolist())
+    generos_seleccionados = st.multiselect(
+        "Seleccionar géneros:",
+        generos_disponibles,
+        default=generos_disponibles
+    )
 
-# Aplicar filtros
+    # Filtro por múltiples municipios
+    st.subheader("🏘️ Municipios")
+    if deptos_seleccionados:
+        # Filtrar municipios según los departamentos seleccionados
+        municipios_filtrados = df[df['DEPARTAMENTO'].isin(deptos_seleccionados)]['MUNICIPIO'].unique()
+        municipios_disponibles = sorted(municipios_filtrados.tolist())
+    else:
+        municipios_disponibles = sorted(df['MUNICIPIO'].unique().tolist())
+    
+    # Checkbox para seleccionar todos los municipios
+    todos_municipios = st.checkbox("Seleccionar todos los municipios", value=True)
+    
+    if todos_municipios or not municipios_disponibles:
+        municipios_seleccionados = municipios_disponibles
+    else:
+        municipios_seleccionados = st.multiselect(
+            "Seleccionar municipios específicos:",
+            municipios_disponibles,
+            default=municipios_disponibles[:10] if len(municipios_disponibles) > 10 else municipios_disponibles,
+            help="Los municipios se filtran según los departamentos seleccionados"
+        )
+
+    # Filtro por rango de edad con slider mejorado
+    st.subheader("🎂 Rango de Edad")
+    edad_min_global = int(df['EDAD'].min())
+    edad_max_global = int(df['EDAD'].max())
+    
+    # Usar columnas para mostrar los valores seleccionados
+    col1, col2 = st.columns(2)
+    with col1:
+        edad_min = st.number_input("Edad mínima", min_value=edad_min_global, max_value=edad_max_global, value=edad_min_global)
+    with col2:
+        edad_max = st.number_input("Edad máxima", min_value=edad_min_global, max_value=edad_max_global, value=edad_max_global)
+    
+    # Slider visual para el rango
+    edad_min, edad_max = st.slider(
+        "Ajustar rango de edad:",
+        min_value=edad_min_global,
+        max_value=edad_max_global,
+        value=(edad_min, edad_max),
+        step=1
+    )
+
+# Aplicar filtros con la nueva lógica
 df_filtrado = df.copy()
 
-if depto_seleccionado != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['DEPARTAMENTO'] == depto_seleccionado]
+# Aplicar filtros por departamentos
+if deptos_seleccionados:
+    df_filtrado = df_filtrado[df_filtrado['DEPARTAMENTO'].isin(deptos_seleccionados)]
 
-if plataforma_seleccionada != 'Todas':
-    df_filtrado = df_filtrado[df_filtrado['PLATAFORMA_EDUCATIVA'] == plataforma_seleccionada]
+# Aplicar filtros por plataformas
+if plataformas_seleccionadas:
+    df_filtrado = df_filtrado[df_filtrado['PLATAFORMA_EDUCATIVA'].isin(plataformas_seleccionadas)]
 
+# Aplicar filtros por género
+if generos_seleccionados:
+    df_filtrado = df_filtrado[df_filtrado['GENERO'].isin(generos_seleccionados)]
+
+# Aplicar filtros por municipios
+if municipios_seleccionados:
+    df_filtrado = df_filtrado[df_filtrado['MUNICIPIO'].isin(municipios_seleccionados)]
+
+# Aplicar filtros por edad
 df_filtrado = df_filtrado[(df_filtrado['EDAD'] >= edad_min) & (df_filtrado['EDAD'] <= edad_max)]
 
 # Actualizar session state
 st.session_state.df = df_filtrado
 
-# Mostrar información de filtros aplicados
-if len(df_filtrado) != len(df):
-    st.sidebar.success(f"Filtros aplicados: {len(df_filtrado):,} de {len(df):,} registros")
+# Mostrar información detallada de filtros aplicados
+with st.sidebar.expander("📊 Resumen de Filtros", expanded=False):
+    st.write(f"**Total de registros originales:** {len(df):,}")
+    st.write(f"**Registros después de filtros:** {len(df_filtrado):,}")
+    
+    if len(df_filtrado) != len(df):
+        porcentaje_filtrado = (len(df_filtrado) / len(df)) * 100
+        st.write(f"**Porcentaje mostrado:** {porcentaje_filtrado:.1f}%")
+        
+        # Mostrar filtros activos
+        filtros_activos = []
+        if not todos_deptos and deptos_seleccionados:
+            filtros_activos.append(f"Departamentos: {len(deptos_seleccionados)}")
+        if not todas_plataformas and plataformas_seleccionadas:
+            filtros_activos.append(f"Plataformas: {len(plataformas_seleccionadas)}")
+        if len(generos_seleccionados) < len(generos_disponibles):
+            filtros_activos.append(f"Géneros: {len(generos_seleccionados)}")
+        if not todos_municipios and municipios_seleccionados:
+            filtros_activos.append(f"Municipios: {len(municipios_seleccionados)}")
+        if edad_min != edad_min_global or edad_max != edad_max_global:
+            filtros_activos.append(f"Edad: {edad_min}-{edad_max}")
+            
+        if filtros_activos:
+            st.write("**Filtros activos:**")
+            for filtro in filtros_activos:
+                st.write(f"• {filtro}")
+
+# Botón para resetear filtros
+if st.sidebar.button("🔄 Resetear todos los filtros"):
+    st.rerun()
 
 # --- INTERFAZ DE USUARIO ---
 
@@ -968,17 +1070,228 @@ Explore las diferentes secciones para conocer la distribución por departamento,
 """)
 
 # Crear estructura de navegación con pestañas
-tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs([
-    "📊 Dashboard General", 
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    "� Resumen del Proyecto",
+    "�📊 Dashboard General", 
     "🌎 Análisis Geográfico", 
     "👥 Análisis Demográfico",
+    "🏘️ Análisis por Municipios",
     "🔍 Análisis Detallado",
     "📝 Datos",
     "🤖 Recomendador de Plataformas"
 ])
 
-# --- PESTAÑA 1: DASHBOARD GENERAL ---
+# --- PESTAÑA 1: RESUMEN DEL PROYECTO ---
 with tab1:
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+        <div style="text-align: center;">
+            <h1 style="color: white; border-bottom: none; margin-bottom: 15px; font-size: 2.5em;">
+                🎓 Análisis de Plataformas Educativas en Colombia
+            </h1>
+            <p style="font-size: 1.3em; margin-bottom: 0;">
+                Proyecto de análisis de datos para el Bootcamp TalentoTech
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Objetivos del proyecto
+    st.header("🎯 Objetivos del Proyecto")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### 📊 Objetivo Principal
+        Desarrollar un análisis integral sobre el uso de plataformas educativas digitales por parte de beneficiarios en Colombia, identificando patrones demográficos, geográficos y de preferencias para optimizar la distribución de recursos educativos.
+        
+        ### 🔍 Objetivos Específicos
+        
+        **1. Análisis Demográfico**
+        - Caracterizar la población beneficiaria por edad, género y ubicación geográfica
+        - Identificar grupos etarios predominantes
+        - Analizar la distribución por género
+        
+        **2. Análisis Geográfico**
+        - Mapear la distribución de beneficiarios por departamentos y municipios
+        - Identificar regiones con mayor y menor participación
+        - Visualizar patrones geográficos de adopción
+        """)
+    
+    with col2:
+        st.markdown("""
+        **3. Análisis de Plataformas**
+        - Evaluar la popularidad de cada plataforma educativa
+        - Identificar preferencias por grupo demográfico
+        - Analizar la diversidad de plataformas por región
+        
+        **4. Sistema de Recomendación**
+        - Desarrollar un modelo de Machine Learning para recomendar plataformas
+        - Utilizar características demográficas para personalizar recomendaciones
+        - Proporcionar probabilidades de afinidad por plataforma
+        
+        ### 🎖️ Impacto Esperado
+        - Mejorar la asignación de recursos educativos
+        - Personalizar la oferta de formación digital
+        - Identificar brechas de acceso geográficas
+        - Optimizar estrategias de inclusión digital
+        """)
+    
+    # Metodología
+    st.header("🔬 Metodología")
+    
+    metodologia_tabs = st.tabs(["📊 Datos", "🛠️ Herramientas", "🔄 Proceso", "📈 Resultados"])
+    
+    with metodologia_tabs[0]:
+        st.markdown("""
+        ### 📋 Fuente de Datos
+        - **Dataset**: Beneficiarios de plataformas educativas en Colombia
+        - **Período**: Datos actualizados hasta 2025
+        - **Variables principales**:
+          - Datos demográficos (edad, género)
+          - Ubicación geográfica (departamento, municipio)
+          - Plataforma educativa utilizada
+        
+        ### 📊 Características del Dataset
+        """)
+        
+        if len(df) > 0:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Total Registros", f"{len(df):,}")
+            with col2:
+                st.metric("Departamentos", f"{df['DEPARTAMENTO'].nunique()}")
+            with col3:
+                st.metric("Municipios", f"{df['MUNICIPIO'].nunique()}")
+            with col4:
+                st.metric("Plataformas", f"{df['PLATAFORMA_EDUCATIVA'].nunique()}")
+    
+    with metodologia_tabs[1]:
+        st.markdown("""
+        ### 🛠️ Stack Tecnológico
+        
+        **Lenguaje de Programación**
+        - Python 3.12+
+        
+        **Bibliotecas de Análisis de Datos**
+        - 🐼 **Pandas**: Para manipulación y análisis de datos
+        - 🔢 **NumPy**: Para operaciones numéricas
+        - 📊 **Matplotlib & Seaborn**: Para visualización estática
+        - 📈 **Plotly**: Para visualizaciones interactivas
+        
+        **Machine Learning**
+        - 🤖 **Scikit-learn**: Para el modelo de recomendación
+        - 🌲 **Random Forest**: Algoritmo de clasificación
+        - 📏 **StandardScaler**: Para normalización de datos
+        - 🔄 **One-Hot Encoding**: Para variables categóricas
+        
+        **Visualización Geográfica**
+        - 🗺️ **Folium**: Para mapas interactivos
+        - 🌍 **GeoJSON**: Para datos geográficos de Colombia
+        
+        **Framework Web**
+        - 🚀 **Streamlit**: Para la aplicación web interactiva
+        - 🎨 **CSS personalizado**: Para mejorar la experiencia visual
+        """)
+    
+    with metodologia_tabs[2]:
+        st.markdown("""
+        ### 🔄 Proceso de Desarrollo
+        
+        **1. Exploración y Limpieza de Datos** 🧹
+        - Análisis exploratorio inicial
+        - Limpieza de datos faltantes
+        - Normalización de variables categóricas
+        - Validación de integridad de datos
+        
+        **2. Análisis Descriptivo** 📊
+        - Estadísticas descriptivas por variable
+        - Distribuciones demográficas
+        - Análisis de frecuencias geográficas
+        - Identificación de patrones iniciales
+        
+        **3. Visualización de Datos** 📈
+        - Gráficos de distribución
+        - Mapas de calor (heatmaps)
+        - Mapas geográficos interactivos
+        - Gráficos de barras y sectores
+        
+        **4. Modelado Predictivo** 🤖
+        - Preparación de features
+        - Entrenamiento del modelo Random Forest
+        - Validación y ajuste de hiperparámetros
+        - Implementación del sistema de recomendación
+        
+        **5. Desarrollo de la Aplicación** 💻
+        - Diseño de interfaz interactiva
+        - Implementación de filtros dinámicos
+        - Integración de visualizaciones
+        - Testing y optimización
+        """)
+    
+    with metodologia_tabs[3]:
+        st.markdown("""
+        ### 📈 Resultados y Hallazgos Principales
+        
+        **Insights Demográficos** 👥
+        - Identificación de grupos etarios predominantes
+        - Análisis de distribución por género
+        - Patrones de participación por edad
+        
+        **Insights Geográficos** 🗺️
+        - Departamentos con mayor participación
+        - Municipios con baja cobertura
+        - Concentración urbana vs rural
+        
+        **Insights de Plataformas** 💻
+        - Plataformas más populares por región
+        - Preferencias por grupo demográfico
+        - Diversidad de opciones por área geográfica
+        
+        **Sistema de Recomendación** 🎯
+        - Precisión del modelo de recomendación
+        - Personalización basada en perfil demográfico
+        - Probabilidades de afinidad por plataforma
+        """)
+    
+    # Equipo y créditos
+    st.header("👥 Equipo de Desarrollo")
+    
+    st.markdown("""
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <div style="text-align: center;">
+            <h3>🐐 "Las Cabras" - Bootcamp TalentoTech</h3>
+            <p><strong>Proyecto desarrollado como parte del Bootcamp de Ciencia de Datos</strong></p>
+            <p>📅 <strong>Año:</strong> 2025</p>
+            <p>🎓 <strong>Programa:</strong> TalentoTech - Formación en Tecnología</p>
+            <p>🇨🇴 <strong>País:</strong> Colombia</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Call to action
+    st.markdown("""
+    ---
+    ### 🚀 ¡Explora el Análisis!
+    
+    Utiliza las pestañas superiores para navegar por los diferentes análisis:
+    - **📊 Dashboard General**: Métricas clave y comparadores interactivos
+    - **🌎 Análisis Geográfico**: Mapas y distribución territorial
+    - **👥 Análisis Demográfico**: Patrones por edad, género y grupos
+    - **🏘️ Análisis por Municipios**: Enfoque detallado a nivel municipal
+    - **🔍 Análisis Detallado**: Visualizaciones específicas y profundas
+    - **📝 Datos**: Explorador de datos con funciones de descarga
+    - **🤖 Recomendador**: Sistema inteligente de recomendación de plataformas
+    """)
+
+# --- PESTAÑA 2: DASHBOARD GENERAL ---
+with tab2:
     # Agregar banner principal con gradiente
     st.markdown("""
     <div style="background: linear-gradient(to right, #4e89ae, #43658b);
@@ -1003,7 +1316,7 @@ with tab1:
     df_actual = st.session_state.df
     
     # Crear fila de métricas con delta values para comparaciones
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         total_beneficiarios = len(df_actual)
@@ -1037,6 +1350,13 @@ with tab1:
         st.metric(
             "Departamentos", 
             f"{departamentos_count}"
+        )
+    
+    with col5:
+        municipios_count = df_actual['MUNICIPIO'].nunique()
+        st.metric(
+            "Municipios", 
+            f"{municipios_count}"
         )
     
     # Verificar si hay datos después de los filtros
@@ -1082,6 +1402,43 @@ with tab1:
         with st.expander("📈 Distribución por Edad", expanded=True):
             st.pyplot(grafico_edad(df_actual))
     
+    # Agregar widget interactivo para comparar plataformas
+    st.subheader("🔄 Comparador Interactivo de Plataformas")
+    
+    # Selector de plataformas para comparar
+    plataformas_para_comparar = st.multiselect(
+        "Selecciona plataformas para comparar:",
+        options=sorted(df_actual['PLATAFORMA_EDUCATIVA'].unique()),
+        default=sorted(df_actual['PLATAFORMA_EDUCATIVA'].unique())[:3] if len(df_actual['PLATAFORMA_EDUCATIVA'].unique()) >= 3 else sorted(df_actual['PLATAFORMA_EDUCATIVA'].unique()),
+        help="Selecciona 2 o más plataformas para ver comparaciones detalladas"
+    )
+    
+    if len(plataformas_para_comparar) >= 2:
+        # Crear dataframe filtrado para las plataformas seleccionadas
+        df_comparacion = df_actual[df_actual['PLATAFORMA_EDUCATIVA'].isin(plataformas_para_comparar)]
+        
+        # Métricas de comparación
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**📊 Total de usuarios por plataforma:**")
+            conteo_plataformas = df_comparacion['PLATAFORMA_EDUCATIVA'].value_counts()
+            for plataforma, count in conteo_plataformas.items():
+                st.write(f"• {plataforma}: {count:,} usuarios")
+        
+        with col2:
+            st.markdown("**👥 Edad promedio por plataforma:**")
+            edad_promedio = df_comparacion.groupby('PLATAFORMA_EDUCATIVA')['EDAD'].mean()
+            for plataforma, edad in edad_promedio.items():
+                st.write(f"• {plataforma}: {edad:.1f} años")
+        
+        with col3:
+            st.markdown("**🏛️ Departamentos más activos:**")
+            for plataforma in plataformas_para_comparar[:3]:  # Mostrar solo top 3
+                dept_top = df_comparacion[df_comparacion['PLATAFORMA_EDUCATIVA'] == plataforma]['DEPARTAMENTO'].value_counts().head(1)
+                if not dept_top.empty:
+                    st.write(f"• {plataforma}: {dept_top.index[0]}")
+    
     col3, col4 = st.columns(2)
     
     with col3:
@@ -1092,8 +1449,8 @@ with tab1:
         with st.expander("🌍 Distribución por Departamento", expanded=True):
             st.pyplot(grafico_departamentos(df_actual))
 
-# --- PESTAÑA 2: ANÁLISIS GEOGRÁFICO ---
-with tab2:
+# --- PESTAÑA 3: ANÁLISIS GEOGRÁFICO ---
+with tab3:
     # Mejorar el encabezado con más contexto
     st.markdown("""
     <div style="background: linear-gradient(to right, #43658b, #4e89ae);
@@ -1175,8 +1532,8 @@ with tab2:
             styled_df = top5_df.style.apply(highlight_top_row, axis=0)
             st.dataframe(styled_df, use_container_width=True)
 
-# --- PESTAÑA 3: ANÁLISIS DEMOGRÁFICO ---
-with tab3:
+# --- PESTAÑA 4: ANÁLISIS DEMOGRÁFICO ---
+with tab4:
     st.header("👥 Análisis Demográfico")
     
     df_actual = st.session_state.df
@@ -1214,8 +1571,242 @@ with tab3:
     fig_div, diversity_df = analisis_diversidad_departamentos(df_actual)
     st.pyplot(fig_div)
 
-# --- PESTAÑA 4: ANÁLISIS DETALLADO ---
-with tab4:
+# --- PESTAÑA 5: ANÁLISIS POR MUNICIPIOS ---
+with tab5:
+    st.markdown("""
+    <div style="background: linear-gradient(to right, #43658b, #4e89ae);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px;">
+        <h2 style="color: white; border-bottom: none; margin: 0;">🏘️ Análisis por Municipios</h2>
+        <p>Explora la participación de beneficiarios a nivel municipal para identificar oportunidades de crecimiento.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    df_actual = st.session_state.df
+    
+    if len(df_actual) == 0:
+        st.warning("⚠️ No hay datos que coincidan con los filtros seleccionados.")
+        st.stop()
+    
+    # Funciones específicas para análisis de municipios
+    def analisis_municipios_general(df):
+        """Análisis general de municipios"""
+        municipios = df.groupby(['DEPARTAMENTO', 'MUNICIPIO']).size().reset_index(name='BENEFICIARIOS')
+        municipios = municipios.sort_values(by='BENEFICIARIOS', ascending=False)
+        return municipios
+    
+    def grafico_top_municipios(df, top_n=20):
+        """Gráfico de top municipios"""
+        municipios = analisis_municipios_general(df)
+        top_municipios = municipios.head(top_n)
+        
+        # Crear etiquetas combinadas
+        top_municipios['MUNICIPIO_DEPTO'] = top_municipios['MUNICIPIO'] + ' (' + top_municipios['DEPARTAMENTO'] + ')'
+        
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.barplot(
+            data=top_municipios, 
+            x='BENEFICIARIOS', 
+            y='MUNICIPIO_DEPTO', 
+            palette='viridis'
+        )
+        
+        plt.title(f'Top {top_n} Municipios con Mayor Participación', fontsize=16, fontweight='bold')
+        plt.xlabel('Cantidad de Beneficiarios', fontsize=12)
+        plt.ylabel('Municipio (Departamento)', fontsize=12)
+        
+        # Añadir valores en las barras
+        for i, v in enumerate(top_municipios['BENEFICIARIOS']):
+            ax.text(v + 0.5, i, str(v), va='center', fontweight='bold')
+        
+        plt.tight_layout()
+        return fig, municipios
+    
+    def grafico_municipios_baja_participacion(df, limite=10):
+        """Gráfico de municipios con baja participación"""
+        municipios = analisis_municipios_general(df)
+        baja_participacion = municipios[municipios['BENEFICIARIOS'] <= limite]
+        
+        if len(baja_participacion) == 0:
+            return None, None
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        # Histograma de distribución
+        counts = baja_participacion['BENEFICIARIOS'].value_counts().sort_index()
+        
+        bars = ax.bar(counts.index, counts.values, color='lightcoral', edgecolor='black')
+        
+        # Añadir etiquetas en las barras
+        for bar, count in zip(bars, counts.values):
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                   int(count), ha='center', va='bottom', fontweight='bold')
+        
+        plt.title(f'Distribución de Municipios con ≤{limite} Beneficiarios', fontsize=14, fontweight='bold')
+        plt.xlabel('Cantidad de Beneficiarios', fontsize=12)
+        plt.ylabel('Número de Municipios', fontsize=12)
+        plt.grid(axis='y', linestyle='--', alpha=0.6)
+        
+        plt.tight_layout()
+        return fig, baja_participacion
+    
+    def analisis_municipios_por_departamento(df, departamento):
+        """Análisis específico de municipios por departamento"""
+        df_dept = df[df['DEPARTAMENTO'] == departamento]
+        municipios_dept = df_dept.groupby('MUNICIPIO').size().reset_index(name='BENEFICIARIOS')
+        municipios_dept = municipios_dept.sort_values(by='BENEFICIARIOS', ascending=False)
+        return municipios_dept
+    
+    # Métricas generales de municipios
+    st.header("📊 Métricas Municipales")
+    
+    municipios_data = analisis_municipios_general(df_actual)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Municipios", f"{len(municipios_data):,}")
+    
+    with col2:
+        municipios_con_mas_10 = len(municipios_data[municipios_data['BENEFICIARIOS'] > 10])
+        st.metric("Municipios >10 beneficiarios", f"{municipios_con_mas_10:,}")
+    
+    with col3:
+        municipios_con_1 = len(municipios_data[municipios_data['BENEFICIARIOS'] == 1])
+        st.metric("Municipios con 1 beneficiario", f"{municipios_con_1:,}")
+    
+    with col4:
+        promedio_beneficiarios = municipios_data['BENEFICIARIOS'].mean()
+        st.metric("Promedio beneficiarios/municipio", f"{promedio_beneficiarios:.1f}")
+    
+    # Análisis principal de municipios
+    st.header("🏆 Top Municipios con Mayor Participación")
+    
+    # Selector para número de municipios a mostrar
+    top_n = st.slider("Número de municipios a mostrar:", min_value=10, max_value=50, value=20, step=5)
+    
+    fig_top, municipios_completo = grafico_top_municipios(df_actual, top_n)
+    st.pyplot(fig_top)
+    
+    # Mostrar tabla de top municipios
+    with st.expander("📋 Ver tabla detallada de top municipios"):
+        top_display = municipios_completo.head(top_n).copy()
+        top_display['Ranking'] = range(1, len(top_display) + 1)
+        top_display = top_display[['Ranking', 'MUNICIPIO', 'DEPARTAMENTO', 'BENEFICIARIOS']]
+        st.dataframe(top_display, use_container_width=True)
+    
+    # Análisis de municipios con baja participación
+    st.header("⚠️ Municipios con Baja Participación")
+    
+    limite_baja = st.selectbox("Definir límite para baja participación:", [5, 10, 15, 20], index=1)
+    
+    fig_baja, baja_data = grafico_municipios_baja_participacion(df_actual, limite_baja)
+    
+    if fig_baja is not None:
+        st.pyplot(fig_baja)
+        
+        # Información adicional sobre baja participación
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.info(f"📊 **{len(baja_data)}** municipios tienen ≤{limite_baja} beneficiarios")
+            porcentaje_baja = (len(baja_data) / len(municipios_completo)) * 100
+            st.write(f"Esto representa el **{porcentaje_baja:.1f}%** del total de municipios")
+        
+        with col2:
+            # Top 5 departamentos con más municipios de baja participación
+            dept_baja = baja_data['DEPARTAMENTO'].value_counts().head(5)
+            st.write("**Top 5 departamentos con más municipios de baja participación:**")
+            for dept, count in dept_baja.items():
+                st.write(f"• {dept}: {count} municipios")
+        
+        # Mostrar algunos ejemplos de municipios con baja participación
+        with st.expander(f"📋 Ver municipios con ≤{limite_baja} beneficiarios"):
+            baja_display = baja_data[['MUNICIPIO', 'DEPARTAMENTO', 'BENEFICIARIOS']].copy()
+            st.dataframe(baja_display, use_container_width=True)
+    else:
+        st.info(f"No hay municipios con ≤{limite_baja} beneficiarios en los datos filtrados.")
+    
+    # Análisis por departamento específico
+    st.header("🔍 Análisis por Departamento Específico")
+    
+    departamentos_disponibles = sorted(df_actual['DEPARTAMENTO'].unique())
+    departamento_seleccionado = st.selectbox(
+        "Selecciona un departamento para análisis detallado:",
+        departamentos_disponibles
+    )
+    
+    if departamento_seleccionado:
+        municipios_dept = analisis_municipios_por_departamento(df_actual, departamento_seleccionado)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Gráfico de municipios del departamento
+            fig, ax = plt.subplots(figsize=(10, 8))
+            
+            if len(municipios_dept) > 15:
+                # Si hay muchos municipios, mostrar solo los top 15
+                municipios_dept_display = municipios_dept.head(15)
+                title_suffix = f" (Top 15 de {len(municipios_dept)})"
+            else:
+                municipios_dept_display = municipios_dept
+                title_suffix = ""
+            
+            sns.barplot(
+                data=municipios_dept_display,
+                x='BENEFICIARIOS',
+                y='MUNICIPIO',
+                palette='Set2'
+            )
+            
+            plt.title(f'Municipios de {departamento_seleccionado}{title_suffix}', 
+                     fontsize=14, fontweight='bold')
+            plt.xlabel('Cantidad de Beneficiarios', fontsize=12)
+            plt.ylabel('Municipio', fontsize=12)
+            
+            # Añadir valores
+            for i, v in enumerate(municipios_dept_display['BENEFICIARIOS']):
+                ax.text(v + 0.5, i, str(v), va='center', fontweight='bold')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        with col2:
+            # Estadísticas del departamento
+            st.subheader(f"📊 Estadísticas de {departamento_seleccionado}")
+            
+            total_municipios_dept = len(municipios_dept)
+            total_beneficiarios_dept = municipios_dept['BENEFICIARIOS'].sum()
+            promedio_dept = municipios_dept['BENEFICIARIOS'].mean()
+            
+            st.metric("Total municipios", f"{total_municipios_dept:,}")
+            st.metric("Total beneficiarios", f"{total_beneficiarios_dept:,}")
+            st.metric("Promedio por municipio", f"{promedio_dept:.1f}")
+            
+            # Distribución de beneficiarios
+            municipios_1 = len(municipios_dept[municipios_dept['BENEFICIARIOS'] == 1])
+            municipios_2_10 = len(municipios_dept[(municipios_dept['BENEFICIARIOS'] >= 2) & 
+                                                (municipios_dept['BENEFICIARIOS'] <= 10)])
+            municipios_mas_10 = len(municipios_dept[municipios_dept['BENEFICIARIOS'] > 10])
+            
+            st.write("**Distribución por rangos:**")
+            st.write(f"• 1 beneficiario: {municipios_1} municipios")
+            st.write(f"• 2-10 beneficiarios: {municipios_2_10} municipios")
+            st.write(f"• Más de 10: {municipios_mas_10} municipios")
+        
+        # Tabla completa del departamento
+        with st.expander(f"📋 Ver todos los municipios de {departamento_seleccionado}"):
+            municipios_dept_display = municipios_dept.copy()
+            municipios_dept_display['Ranking'] = range(1, len(municipios_dept_display) + 1)
+            municipios_dept_display = municipios_dept_display[['Ranking', 'MUNICIPIO', 'BENEFICIARIOS']]
+            st.dataframe(municipios_dept_display, use_container_width=True)
+
+# --- PESTAÑA 6: ANÁLISIS DETALLADO ---
+with tab6:
     st.header("🔍 Análisis Detallado")
     
     df_actual = st.session_state.df
@@ -1277,8 +1868,8 @@ with tab4:
         return fig
     st.pyplot(analisis_patrones_preferencias(df_actual))
 
-# --- PESTAÑA 5: DATOS ---
-with tab5:
+# --- PESTAÑA 7: DATOS ---
+with tab7:
     # Mejorar presentación de la pestaña de datos
     st.markdown("""
     <div style="background: linear-gradient(to right, #43658b, #4e89ae);
@@ -1376,56 +1967,99 @@ with tab5:
             st.write("No hay columnas numéricas para mostrar estadísticas o no hay datos disponibles")
 
 # -------------------------------
-# ⚙️ CARGA Y LIMPIEZA DE DATOS
+# ⚙️ CARGA Y LIMPIEZA DE DATOS PARA EL RECOMENDADOR
 # -------------------------------
 @st.cache_data
-def cargar_datos():
-    df = pd.read_csv("beneficiarios.csv", sep=None, engine="python")
+def cargar_datos_recomendador():
+    """
+    Carga datos específicamente para el modelo de recomendación
+    """
+    try:
+        # Primero intentar cargar desde URL
+        url = "https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/beneficiarios.csv"
+        df = pd.read_csv(url, delimiter=';', encoding='utf-8-sig')
+    except:
+        try:
+            # Si falla la URL, intentar archivo local
+            df = pd.read_csv("../beneficiarios.csv", delimiter=';', encoding='utf-8-sig')
+        except:
+            # Como último recurso, crear datos de ejemplo
+            st.error("No se pudo cargar el archivo de datos. Usando datos de ejemplo.")
+            return pd.DataFrame({
+                'EDAD': [25, 30, 35, 40],
+                'GENERO': ['MASCULINO', 'FEMENINO', 'MASCULINO', 'FEMENINO'],
+                'DEPARTAMENTO': ['BOGOTA', 'ANTIOQUIA', 'VALLE DEL CAUCA', 'SANTANDER'],
+                'PLATAFORMA_EDUCATIVA': ['COURSERA', 'PLATZI', 'DATACAMP', 'EDX']
+            })
+    
+    # Limpieza de datos
     df.columns = df.columns.str.replace('\ufeff', '', regex=False).str.strip()
+    df = df.dropna(subset=['EDAD', 'PLATAFORMA_EDUCATIVA', 'GENERO', 'DEPARTAMENTO'])
+    df['EDAD'] = df['EDAD'].astype(int)
+    df['PLATAFORMA_EDUCATIVA'] = df['PLATAFORMA_EDUCATIVA'].str.strip().str.upper()
+    df['DEPARTAMENTO'] = df['DEPARTAMENTO'].str.upper().str.strip()
+    df['GENERO'] = df['GENERO'].str.upper().str.strip()
     return df
 
-df = cargar_datos()
+# Cargar datos para el recomendador
+df_recomendador = cargar_datos_recomendador()
 
 # -------------------------------
-# 🧪 PREPROCESAMIENTO
+# 🧪 PREPROCESAMIENTO PARA EL RECOMENDADOR
 # -------------------------------
-X = df[["EDAD", "GENERO", "DEPARTAMENTO"]]
-y = df["PLATAFORMA_EDUCATIVA"]
+if len(df_recomendador) > 0:
+    X = df_recomendador[["EDAD", "GENERO", "DEPARTAMENTO"]]
+    y = df_recomendador["PLATAFORMA_EDUCATIVA"]
 
-preprocesador = ColumnTransformer([
-    ("num", StandardScaler(), ["EDAD"]),
-    ("cat", OneHotEncoder(handle_unknown='ignore'), ["GENERO", "DEPARTAMENTO"])
-])
+    preprocesador = ColumnTransformer([
+        ("num", StandardScaler(), ["EDAD"]),
+        ("cat", OneHotEncoder(handle_unknown='ignore'), ["GENERO", "DEPARTAMENTO"])
+    ])
 
-X_proc = preprocesador.fit_transform(X)
+    X_proc = preprocesador.fit_transform(X)
 
-# -------------------------------
-# 🌲 ENTRENAMIENTO DEL MODELO
-# -------------------------------
-modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
-modelo_rf.fit(X_proc, y)
+    # -------------------------------
+    # 🌲 ENTRENAMIENTO DEL MODELO
+    # -------------------------------
+    modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    modelo_rf.fit(X_proc, y)
+else:
+    modelo_rf = None
+    preprocesador = None
 
 # -------------------------------
 # 🔍 FUNCIÓN PARA PREDECIR
 # -------------------------------
 def predecir_plataforma(edad, genero, departamento):
-    nuevo = pd.DataFrame([[edad, genero.upper(), departamento.upper()]],
-                         columns=["EDAD", "GENERO", "DEPARTAMENTO"])
-    nuevo_proc = preprocesador.transform(nuevo)
+    if modelo_rf is None or preprocesador is None:
+        return "Error: Modelo no disponible", pd.DataFrame()
+    
+    try:
+        nuevo = pd.DataFrame([[edad, genero.upper(), departamento.upper()]],
+                             columns=["EDAD", "GENERO", "DEPARTAMENTO"])
+        nuevo_proc = preprocesador.transform(nuevo)
 
-    prediccion = modelo_rf.predict(nuevo_proc)[0]
-    probabilidades = modelo_rf.predict_proba(nuevo_proc)[0]
+        prediccion = modelo_rf.predict(nuevo_proc)[0]
+        probabilidades = modelo_rf.predict_proba(nuevo_proc)[0]
 
-    plataformas = modelo_rf.classes_
-    ranking = pd.DataFrame({
-        "PLATAFORMA_EDUCATIVA": plataformas,
-        "Probabilidad": probabilidades
-    }).sort_values(by="Probabilidad", ascending=False)
+        plataformas = modelo_rf.classes_
+        ranking = pd.DataFrame({
+            "PLATAFORMA_EDUCATIVA": plataformas,
+            "Probabilidad": probabilidades
+        }).sort_values(by="Probabilidad", ascending=False)
 
-    return prediccion, ranking
+        return prediccion, ranking
+    except Exception as e:
+        st.error(f"Error en la predicción: {e}")
+        return "Error", pd.DataFrame()
 
-with tab6:
+with tab8:
     st.header("🤖 Recomendador de Plataformas Educativas")
+
+    # Verificar si hay datos disponibles
+    if len(df_recomendador) == 0:
+        st.error("❌ No hay datos disponibles para el recomendador. Por favor, verifica la conexión.")
+        st.stop()
 
     st.markdown("""
     ### 📌 ¿Qué hace este recomendador inteligente?
@@ -1438,58 +2072,110 @@ with tab6:
     - Tu **departamento de residencia**
 
     El modelo analiza patrones complejos entre miles de registros previos y determina cuál es la **plataforma más recomendada para personas con tu perfil**.
+    """)
 
-
-    """, unsafe_allow_html=True)
+    # Mostrar estadísticas del modelo
+    with st.expander("📊 Estadísticas del modelo", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Registros de entrenamiento", f"{len(df_recomendador):,}")
+        with col2:
+            st.metric("Plataformas disponibles", f"{df_recomendador['PLATAFORMA_EDUCATIVA'].nunique()}")
+        with col3:
+            st.metric("Departamentos", f"{df_recomendador['DEPARTAMENTO'].nunique()}")
 
     st.subheader("📥 Ingresa tus datos:")
 
-    edad = st.number_input("Edad", min_value=10, max_value=100, value=25)
-    genero = st.selectbox("Género", sorted(df["GENERO"].dropna().unique()))
-    departamento = st.selectbox("Departamento", sorted(df["DEPARTAMENTO"].dropna().unique()))
+    # Crear columnas para una mejor disposición
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        edad = st.number_input("Edad", min_value=10, max_value=100, value=25)
+    
+    with col2:
+        generos_disponibles_rec = sorted(df_recomendador["GENERO"].dropna().unique())
+        genero = st.selectbox("Género", generos_disponibles_rec)
+    
+    with col3:
+        departamentos_disponibles_rec = sorted(df_recomendador["DEPARTAMENTO"].dropna().unique())
+        departamento = st.selectbox("Departamento", departamentos_disponibles_rec)
 
-    if st.button("🔍 Recomendar Plataforma", key="recomendar_rf"):
-        pred, ranking = predecir_plataforma(edad, genero, departamento)
-        porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
+    # Botón centrado y más atractivo
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        recomendar_btn = st.button("🔍 Recomendar Plataforma", key="recomendar_rf", type="primary", use_container_width=True)
 
+    if recomendar_btn:
+        if modelo_rf is None:
+            st.error("❌ El modelo de recomendación no está disponible.")
+        else:
+            with st.spinner("🧠 Analizando tu perfil y generando recomendación..."):
+                pred, ranking = predecir_plataforma(edad, genero, departamento)
+                
+                if pred == "Error" or ranking.empty:
+                    st.error("❌ Error al generar la recomendación. Intenta con otros datos.")
+                else:
+                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
 
+                    # Mostrar la recomendación principal con estilo
+                    st.success(f"🎯 **Plataforma recomendada: {pred}** ({porcentaje_pred:.1f}% de probabilidad)")
+                    
+                    # Recomendación personalizada
+                    st.markdown(f"""
+                    ### 🧠 Recomendación Personalizada  
+                    Para personas de género **{genero.lower()}**, con **{edad} años**, del departamento de **{departamento.title()}**,  
+                    la plataforma más recomendada es 👉 **{pred}**,  
+                    con una probabilidad del **{porcentaje_pred:.1f}%**.
+                    """)
 
-        # Mostrar el ranking
-        st.subheader("📊 Distribución de Probabilidades")
-        st.dataframe(ranking)
+                    # Mostrar el ranking en dos columnas
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.subheader("📊 Distribución de Probabilidades")
+                        # Crear una tabla más atractiva
+                        ranking_display = ranking.copy()
+                        ranking_display["Probabilidad (%)"] = (ranking_display["Probabilidad"] * 100).round(1)
+                        ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Probabilidad (%)"]]
+                        ranking_display.columns = ["Plataforma", "Probabilidad (%)"]
+                        st.dataframe(ranking_display, use_container_width=True)
 
-        # Gráfico
-        fig, ax = plt.subplots(figsize=(10, 5))
-        sns.barplot(data=ranking, x="PLATAFORMA_EDUCATIVA", y="Probabilidad", palette="coolwarm", ax=ax)
-        for i, row in ranking.iterrows():
-            ax.text(i, row["Probabilidad"] + 0.01, f"{row['Probabilidad']:.2f}", ha='center', fontsize=9)
-        ax.set_title("Probabilidad por Plataforma")
-        ax.set_ylabel("Probabilidad")
-        ax.set_xlabel("Plataforma Educativa")
-        ax.set_ylim(0, 1.05)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-        st.pyplot(fig)
-        
-        # Recomendación personalizada
-        otros = ranking[ranking["PLATAFORMA_EDUCATIVA"] != pred].copy()
-        otros["Probabilidad"] = otros["Probabilidad"] * 100
-        
-        st.markdown(f"""
-        ### 🧠 Recomendación Personalizada  
-        Para personas de género **{genero.lower()}**, con **{edad} años**, del departamento de **{departamento.title()}**,  
-        la plataforma más recomendada es 👉 **{pred}**,  
-        con una probabilidad del **{porcentaje_pred:.1f}%**.
-        """)
-        
-        # Mostrar otras probabilidades en un expander
-        with st.expander("📌 Ver probabilidades de todas las plataformas"):
-            ranking_copy = ranking.copy()
-            ranking_copy["Probabilidad (%)"] = (ranking_copy["Probabilidad"] * 100).round(1)
-            st.dataframe(ranking_copy[["PLATAFORMA_EDUCATIVA", "Probabilidad (%)"]])
+                    with col2:
+                        # Gráfico mejorado
+                        fig, ax = plt.subplots(figsize=(8, 6))
+                        colors = plt.cm.viridis(np.linspace(0, 1, len(ranking)))
+                        bars = ax.bar(range(len(ranking)), ranking["Probabilidad"], color=colors)
+                        
+                        # Añadir valores en las barras
+                        for i, (bar, prob) in enumerate(zip(bars, ranking["Probabilidad"])):
+                            height = bar.get_height()
+                            ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                                   f'{prob:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+                        
+                        ax.set_title("Probabilidad por Plataforma", fontsize=14, fontweight='bold')
+                        ax.set_ylabel("Probabilidad", fontsize=12)
+                        ax.set_xlabel("Plataforma Educativa", fontsize=12)
+                        ax.set_ylim(0, max(ranking["Probabilidad"]) * 1.1)
+                        ax.set_xticks(range(len(ranking)))
+                        ax.set_xticklabels([plat[:8] + '...' if len(plat) > 8 else plat for plat in ranking["PLATAFORMA_EDUCATIVA"]], 
+                                         rotation=45, ha='right')
+                        plt.tight_layout()
+                        st.pyplot(fig)
 
-
-
-        st.success(f"🎯 Plataforma recomendada: **{pred}**")
+                    # Mostrar información adicional
+                    with st.expander("📌 Ver detalles de todas las plataformas"):
+                        # Crear una tabla más detallada
+                        ranking_detailed = ranking.copy()
+                        ranking_detailed["Probabilidad (%)"] = (ranking_detailed["Probabilidad"] * 100).round(2)
+                        ranking_detailed["Recomendación"] = ranking_detailed["Probabilidad (%)"].apply(
+                            lambda x: "🥇 Altamente recomendada" if x >= 30 
+                                    else "🥈 Recomendada" if x >= 15 
+                                    else "🥉 Considerar como opción" if x >= 5 
+                                    else "⚪ Menos probable"
+                        )
+                        ranking_detailed.columns = ["Plataforma", "Probabilidad", "Probabilidad (%)", "Nivel de Recomendación"]
+                        st.dataframe(ranking_detailed[["Plataforma", "Probabilidad (%)", "Nivel de Recomendación"]], 
+                                   use_container_width=True)
 
 # Añadir footer personalizado
 st.markdown("""
