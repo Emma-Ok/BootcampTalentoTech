@@ -2192,13 +2192,12 @@ def cargar_datos():
     df.columns = df.columns.str.strip().str.upper()
     return df.dropna()
 
-
-def generar_perfiles(df_base, cluster_col):
+def generar_perfiles(df_base, cluster_col, df_original):
     perfiles = []
     for c in sorted(df_base[cluster_col].unique()):
         if c == -1:
             continue  # Omitir el ruido en DBSCAN
-        subset = df[df_base[cluster_col] == c]
+        subset = df_original[df_base[cluster_col] == c]
         perfil = {
             "Cluster": c,
             "Num_Usuarios": len(subset),
@@ -2210,7 +2209,6 @@ def generar_perfiles(df_base, cluster_col):
         perfiles.append(perfil)
     return pd.DataFrame(perfiles)
 
-
 def preprocesar_datos(df):
     encoder = ce.OrdinalEncoder(cols=['GENERO', 'DEPARTAMENTO', 'PLATAFORMA_EDUCATIVA'])
     X_cat = encoder.fit_transform(df[['GENERO', 'DEPARTAMENTO', 'PLATAFORMA_EDUCATIVA']])
@@ -2219,6 +2217,7 @@ def preprocesar_datos(df):
     X = np.hstack((X_num, X_cat))
     X_noisy = X + np.random.normal(0, 0.001, X.shape)
     return X, X_noisy
+
 def aplicar_pca(X, df):
     pca = PCA(n_components=2, random_state=42)
     X_pca = pca.fit_transform(X)
@@ -2227,6 +2226,7 @@ def aplicar_pca(X, df):
     df_pca['GENERO'] = df['GENERO']
     df_pca['DEPARTAMENTO'] = df['DEPARTAMENTO']
     return df_pca
+
 def aplicar_umap(X_noisy, df):
     umap_model = umap.UMAP(n_components=2, random_state=42, n_neighbors=10, min_dist=0.3)
     X_umap = umap_model.fit_transform(X_noisy)
@@ -2235,51 +2235,34 @@ def aplicar_umap(X_noisy, df):
     df_umap['GENERO'] = df['GENERO']
     df_umap['DEPARTAMENTO'] = df['DEPARTAMENTO']
     return df_umap, X_umap
-
-
-
-
-with tab9:
+with table9:
     
-    
-        # CARGAR DATOS
+    # LÓGICA PRINCIPAL
     df = cargar_datos()
-    
-    # PREPROCESAMIENTO
     X, X_noisy = preprocesar_datos(df)
-    
-    # PCA
     df_pca = aplicar_pca(X, df)
-    
-    # UMAP
     df_umap, X_umap = aplicar_umap(X_noisy, df)
     
-    # SECCIÓN PCA
+    # VISUALIZACIÓN PCA
     st.subheader("📊 Visualización PCA (Embeddings Lineales)")
-    
     filtro_plataforma = st.multiselect(
         "Filtrar por plataforma educativa (opcional):", 
         options=sorted(df_pca['PLATAFORMA'].unique()),
         default=sorted(df_pca['PLATAFORMA'].unique())
     )
     df_pca_filtrado = df_pca[df_pca['PLATAFORMA'].isin(filtro_plataforma)]
-    
-    fig_pca = px.scatter(
-        df_pca_filtrado, x='PC1', y='PC2',
-        color='PLATAFORMA',
-        title='Embeddings por PCA (filtrado por plataforma)',
-        hover_data=['GENERO', 'DEPARTAMENTO']
-    )
+    fig_pca = px.scatter(df_pca_filtrado, x='PC1', y='PC2',
+                         color='PLATAFORMA',
+                         title='Embeddings por PCA (filtrado por plataforma)',
+                         hover_data=['GENERO', 'DEPARTAMENTO'])
     st.plotly_chart(fig_pca, use_container_width=True)
     
-    # SECCIÓN UMAP
+    # VISUALIZACIÓN UMAP
     st.subheader("📊 Visualización UMAP (Embeddings No Lineales)")
-    fig_umap = px.scatter(
-        df_umap, x='UMAP1', y='UMAP2',
-        color='PLATAFORMA',
-        title='Embeddings por UMAP',
-        hover_data=['GENERO', 'DEPARTAMENTO']
-    )
+    fig_umap = px.scatter(df_umap, x='UMAP1', y='UMAP2',
+                          color='PLATAFORMA',
+                          title='Embeddings por UMAP',
+                          hover_data=['GENERO', 'DEPARTAMENTO'])
     st.plotly_chart(fig_umap, use_container_width=True)
     
     # CLUSTERING K-MEANS
@@ -2289,13 +2272,10 @@ with tab9:
     df_umap['KMEANS_CLUSTER'] = kmeans.fit_predict(X_umap)
     sil_kmeans = silhouette_score(X_umap, df_umap['KMEANS_CLUSTER'])
     st.write(f"Silhouette Score K-Means: `{sil_kmeans:.3f}`")
-    
-    fig_kmeans = px.scatter(
-        df_umap, x='UMAP1', y='UMAP2',
-        color=df_umap['KMEANS_CLUSTER'].astype(str),
-        title="K-Means Clustering",
-        hover_data=['PLATAFORMA', 'GENERO']
-    )
+    fig_kmeans = px.scatter(df_umap, x='UMAP1', y='UMAP2',
+                            color=df_umap['KMEANS_CLUSTER'].astype(str),
+                            title="K-Means Clustering",
+                            hover_data=['PLATAFORMA', 'GENERO'])
     st.plotly_chart(fig_kmeans, use_container_width=True)
     
     # CLUSTERING DBSCAN
@@ -2304,29 +2284,24 @@ with tab9:
     min_samples = st.slider("Muestras mínimas por clúster", 1, 20, 5)
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     df_umap['DBSCAN_CLUSTER'] = dbscan.fit_predict(X_umap)
-    
     labels_db = df_umap['DBSCAN_CLUSTER']
     if len(set(labels_db)) > 1:
         sil_dbscan = silhouette_score(X_umap, labels_db)
         st.write(f"Silhouette Score DBSCAN: `{sil_dbscan:.3f}`")
     else:
         st.warning("⚠️ DBSCAN detectó un solo clúster o solo ruido.")
-    
-    fig_dbscan = px.scatter(
-        df_umap, x='UMAP1', y='UMAP2',
-        color=df_umap['DBSCAN_CLUSTER'].astype(str),
-        title="DBSCAN Clustering",
-        hover_data=['PLATAFORMA', 'GENERO']
-    )
+    fig_dbscan = px.scatter(df_umap, x='UMAP1', y='UMAP2',
+                            color=df_umap['DBSCAN_CLUSTER'].astype(str),
+                            title="DBSCAN Clustering",
+                            hover_data=['PLATAFORMA', 'GENERO'])
     st.plotly_chart(fig_dbscan, use_container_width=True)
     
-    # GENERACIÓN DE PERFILES
+    # PERFILES
     st.subheader("📋 Perfiles por Clúster")
     with st.expander("Ver perfiles por K-Means"):
-        st.dataframe(generar_perfiles(df_umap, 'KMEANS_CLUSTER'))
-    
+        st.dataframe(generar_perfiles(df_umap, 'KMEANS_CLUSTER', df))
     with st.expander("Ver perfiles por DBSCAN"):
-        st.dataframe(generar_perfiles(df_umap, 'DBSCAN_CLUSTER'))
+        st.dataframe(generar_perfiles(df_umap, 'DBSCAN_CLUSTER', df))
 
 # Añadir footer personalizado
 st.markdown("""
