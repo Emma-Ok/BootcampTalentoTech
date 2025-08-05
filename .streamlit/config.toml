@@ -1,0 +1,7 @@
+[theme]
+base="light"                     # Tema claro
+primaryColor="#FF4B4B"           # Rojo como color principal
+backgroundColor="#ffffff"        # Fondo blanco
+secondaryBackgroundColor="#f0f2f6"  # Fondo claro para cajas y paneles
+textColor="#000000"              # Texto en negro
+font="sans serif"
