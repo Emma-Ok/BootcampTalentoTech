@@ -909,9 +909,194 @@ def crear_mapa_proporcional(df):
         st.error(f"Error al crear el mapa proporcional: {e}")
         return None, None
 
+# Función para crear mapa de calor de Colombia basado en MAPA.ipynb
+def crear_mapa_calor_colombia(df):
+    """
+    Crea un mapa de calor de Colombia basado en la cantidad de beneficiarios por departamento
+    """
+    try:
+        import folium
+        import json
+        import pandas as pd
+        from folium.features import GeoJson, GeoJsonTooltip
+        
+        # Normalizar los nombres de departamentos para evitar problemas de coincidencia
+        df_copia = df.copy()
+        df_copia['DEPARTAMENTO'] = df_copia['DEPARTAMENTO'].str.upper().str.strip()
+        
+        # Crear un diccionario de mapeo completo para normalizar departamentos
+        mapeo_normalizacion = {
+            'BOGOTÁ': 'CUNDINAMARCA',
+            'BOGOTÁ D.C.': 'CUNDINAMARCA',
+            'BOGOTÁ D. C.': 'CUNDINAMARCA',
+            'BOGOTA': 'CUNDINAMARCA',
+            'BOGOTA D.C.': 'CUNDINAMARCA',
+            'BOGOTA D. C.': 'CUNDINAMARCA',
+            'SANTA FE DE BOGOTA': 'CUNDINAMARCA',
+            'BOLIVAR': 'BOLÍVAR',
+            'NARINO': 'NARIÑO',
+            'NARIÑO': 'NARIÑO',
+            'SAN ANDRES Y PROVIDENCIA': 'SAN ANDRÉS Y PROVIDENCIA',
+            'SAN ANDRÉS': 'SAN ANDRÉS Y PROVIDENCIA',
+            'NORTE SANTANDER': 'NORTE DE SANTANDER',
+            'NORTE DE SANTANDER': 'NORTE DE SANTANDER',
+            'VALLE': 'VALLE DEL CAUCA',
+            'VALLE DEL CAUCA': 'VALLE DEL CAUCA'
+        }
+        
+        # Aplicar mapeo de nombres
+        df_copia['DEPARTAMENTO'] = df_copia['DEPARTAMENTO'].replace(mapeo_normalizacion)
+        
+        # Mostrar información sobre el proceso de normalización
+        st.sidebar.markdown("### Proceso de normalización")
+        antes_normalizacion = len(df)
+        despues_normalizacion = len(df_copia)
+        st.sidebar.write(f"Total de registros antes: {antes_normalizacion}")
+        st.sidebar.write(f"Total de registros después: {despues_normalizacion}")
+        
+        # Contar beneficiarios por departamento después de la normalización
+        conteo_departamentos = df_copia['DEPARTAMENTO'].value_counts().to_dict()
+        
+        # Imprimir el total de beneficiarios para verificar
+        total_beneficiarios_mapa = sum(conteo_departamentos.values())
+        st.sidebar.markdown(f"**Total de beneficiarios en el mapa: {total_beneficiarios_mapa:,}**")
+        
+        # Imprimir el conteo por departamento para verificar (solo los primeros 5)
+        top_deptos = sorted(conteo_departamentos.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_deptos_str = "<br>".join([f"{depto}: {count:,}" for depto, count in top_deptos])
+        st.sidebar.markdown(f"**Top 5 departamentos:**<br>{top_deptos_str}", unsafe_allow_html=True)
+        
+        # Verificar si hay discrepancias entre el total de datos y el mapa
+        if total_beneficiarios_mapa != len(df):
+            st.sidebar.warning(f"⚠️ Hay una diferencia de {abs(total_beneficiarios_mapa - len(df)):,} registros entre el dataset ({len(df):,}) y el mapa ({total_beneficiarios_mapa:,})")
+            st.sidebar.info("Esto puede deberse a valores faltantes o nombres de departamentos no normalizados")
+            
+            # Mostrar departamentos que pueden necesitar normalización
+            deptos_unicos = sorted(df['DEPARTAMENTO'].unique())
+            deptos_normalizados = sorted(conteo_departamentos.keys())
+            
+            # Encontrar departamentos que pueden estar causando problemas
+            problemas_potenciales = set(deptos_unicos) - set(deptos_normalizados)
+            if problemas_potenciales:
+                st.sidebar.markdown("**Posibles departamentos no mapeados:**")
+                st.sidebar.write(", ".join(problemas_potenciales))
+            
+        # Calcular promedio para la leyenda
+        promedio = sum(conteo_departamentos.values()) / len(conteo_departamentos) if conteo_departamentos else 0
+        max_depto = max(conteo_departamentos, key=conteo_departamentos.get) if conteo_departamentos else ""
+        
+        # Cargar GeoJSON
+        try:
+            with open('colombia.geo.json', 'r', encoding='utf-8') as f:
+                geojson_data = json.load(f)
+        except FileNotFoundError:
+            # Intentar cargar desde la carpeta Final
+            try:
+                with open('Final/colombia.geo.json', 'r', encoding='utf-8') as f:
+                    geojson_data = json.load(f)
+            except FileNotFoundError:
+                # Intentar cargarlo desde URL si no se encuentra localmente
+                try:
+                    import requests
+                    url_geojson = "https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/colombia.geo.json"
+                    response = requests.get(url_geojson)
+                    geojson_data = response.json()
+                except:
+                    st.error("No se encontró el archivo colombia.geo.json. Por favor, asegúrate de que existe en la carpeta del proyecto.")
+                    return None
+        
+        # Función para asignar color - mejorada para detectar correctamente el departamento con máximo
+        def asignar_color(depto):
+            cantidad = conteo_departamentos.get(depto, 0)
+            # Verificar si este departamento tiene el valor máximo (puede haber varios con el mismo valor)
+            if cantidad == max(conteo_departamentos.values()) and cantidad > 0:
+                return '#ff0000'  # Rojo para el máximo
+            elif cantidad > promedio:
+                return '#1f77b4'  # Azul para los que están sobre el promedio
+            elif cantidad > 0:
+                return '#2ca02c'  # Verde para los que tienen algún beneficiario
+            else:
+                return 'lightgray'  # Gris para los que no tienen beneficiarios
+        
+        # Diccionario de mapeo de nombres de departamentos para normalización
+        mapeo_nombres = {
+            'SANTAFE DE BOGOTA D.C': 'CUNDINAMARCA',
+            'BOGOTA': 'CUNDINAMARCA',
+            'BOGOTÁ': 'CUNDINAMARCA',
+            'BOGOTA D.C.': 'CUNDINAMARCA',
+            'BOLIVAR': 'BOLÍVAR',
+            'NARINO': 'NARIÑO',
+            'SAN ANDRES Y PROVIDENCIA': 'SAN ANDRÉS Y PROVIDENCIA',
+            'NORTE SANTANDER': 'NORTE DE SANTANDER',
+            'VALLE': 'VALLE DEL CAUCA',
+            'VALLE DEL CAUCA': 'VALLE DEL CAUCA'
+        }
+        
+        # Agregar propiedades a cada departamento en el GeoJSON
+        for feature in geojson_data['features']:
+            # Obtener y normalizar el nombre del departamento
+            nombre_dpto = feature['properties']['NOMBRE_DPT'].upper().strip()
+            
+            # Aplicar mapeo si existe
+            if nombre_dpto in mapeo_nombres:
+                nombre_dpto = mapeo_nombres[nombre_dpto]
+            
+            # Buscar el conteo para este departamento
+            beneficiarios = conteo_departamentos.get(nombre_dpto, 0)
+            
+            # Asignar propiedades al feature
+            feature['properties']['beneficiarios'] = beneficiarios
+            feature['properties']['color'] = asignar_color(nombre_dpto)
+        
+        # Crear mapa
+        mapa = folium.Map(location=[4.5709, -74.2973], zoom_start=5)
+        
+        # Añadir GeoJSON al mapa
+        GeoJson(
+            geojson_data,
+            style_function=lambda feature: {
+                'fillColor': feature['properties']['color'],
+                'color': 'black',
+                'weight': 1,
+                'fillOpacity': 0.7
+            },
+            tooltip=GeoJsonTooltip(
+                fields=['NOMBRE_DPT', 'beneficiarios'],
+                aliases=['Departamento:', 'Beneficiarios:'],
+                localize=True,
+                style=("background-color: white; color: #333333; font-family: arial; font-size: 12px;")
+            )
+        ).add_to(mapa)
+        
+        # Leyenda
+        legend_html = '''
+             <div style="position: fixed;
+                         bottom: 50px; left: 50px; width: 200px; height: 140px;
+                         border:2px solid grey; z-index:9999; font-size:12px;
+                         background-color:white; padding: 10px;">
+                 <p style="margin-top:0;"><strong>Leyenda</strong></p>
+                 <i style="background: #ff0000; width: 15px; height: 15px;
+                           display: inline-block; margin-right: 5px;"></i> Máximo beneficiarios<br>
+                 <i style="background: #1f77b4; width: 15px; height: 15px;
+                           display: inline-block; margin-right: 5px;"></i> Sobre promedio<br>
+                 <i style="background: #2ca02c; width: 15px; height: 15px;
+                           display: inline-block; margin-right: 5px;"></i> Bajo promedio<br>
+                 <i style="background: lightgray; width: 15px; height: 15px;
+                           display: inline-block; margin-right: 5px;"></i> Sin beneficiarios
+             </div>
+        '''
+        mapa.get_root().html.add_child(folium.Element(legend_html))
+        
+        return mapa
+    
+    except Exception as e:
+        st.error(f"Error al crear el mapa de calor: {e}")
+        return None
+
 # Eliminar el decorador de caché de estas funciones
 crear_mapa_beneficiarios = crear_mapa_beneficiarios
 crear_mapa_proporcional = crear_mapa_proporcional
+crear_mapa_calor_colombia = crear_mapa_calor_colombia
 
 # --- CONFIGURACIÓN INICIAL ---
 
@@ -1476,7 +1661,7 @@ with tab3:
     # Añadir selector de visualización
     viz_type = st.radio(
         "Seleccionar tipo de visualización",
-        ["Gráfico de Barras", "Mapa Interactivo: Plataforma Dominante", "Mapa Interactivo: Distribución Proporcional"],
+        ["Gráfico de Barras", "Mapa Interactivo: Plataforma Dominante", "Mapa Interactivo: Distribución Proporcional", "Mapa de Calor por Departamento"],
         horizontal=True
     )
     
@@ -1508,6 +1693,51 @@ with tab3:
                 folium_static(mapa_barras, width=800, height=600)
             else:
                 st.error("No se pudo generar el mapa. Intenta con otro filtro.")
+                
+    elif viz_type == "Mapa de Calor por Departamento":
+        # Información explicativa
+        st.info("""
+        **Mapa de Calor de Beneficiarios por Departamento**
+        
+        Este mapa muestra la distribución de beneficiarios por departamento con un esquema de colores:
+        - 🔴 **Rojo**: Departamento con mayor número de beneficiarios
+        - 🔵 **Azul**: Departamentos con beneficiarios sobre el promedio
+        - 🟢 **Verde**: Departamentos con beneficiarios bajo el promedio
+        - ⚪ **Gris**: Departamentos sin beneficiarios
+        
+        *Pasa el cursor sobre cada departamento para ver el número exacto de beneficiarios.*
+        """)
+        
+        with st.spinner('Generando mapa de calor de Colombia... Esto puede tomar unos momentos'):
+            mapa_calor = crear_mapa_calor_colombia(df_actual)
+            if mapa_calor:
+                st.success('¡Mapa generado exitosamente!')
+                folium_static(mapa_calor, width=800, height=600)
+            else:
+                st.error("No se pudo generar el mapa. Intenta con otro filtro.")
+                
+        # Mostrar estadísticas sobre la distribución
+        if mapa_calor:
+            st.subheader("📊 Estadísticas de distribución por departamento")
+            
+            # Calcular estadísticas
+            conteo_deptos = df_actual['DEPARTAMENTO'].value_counts()
+            total_deptos = len(conteo_deptos)
+            max_depto = conteo_deptos.idxmax() if not conteo_deptos.empty else ""
+            max_count = conteo_deptos.max() if not conteo_deptos.empty else 0
+            promedio = conteo_deptos.mean() if not conteo_deptos.empty else 0
+            sobre_promedio = sum(1 for count in conteo_deptos if count > promedio)
+            
+            # Mostrar estadísticas en columnas
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Departamentos con beneficiarios", f"{total_deptos}")
+            with col2:
+                st.metric("Departamento principal", f"{max_depto}", f"{max_count:,} beneficiarios")
+            with col3:
+                st.metric("Promedio por departamento", f"{promedio:.1f}")
+            with col4:
+                st.metric("Deptos. sobre promedio", f"{sobre_promedio}", f"{sobre_promedio/total_deptos*100:.1f}%")
     
     # Top 5 departamentos con mejor presentación
     if viz_type != "Gráfico de Barras" and 'distribucion_matriz' in locals() and distribucion_matriz is not None:
@@ -2153,7 +2383,7 @@ with tab8:
                     with col2:
                         # Gráfico mejorado
                         fig, ax = plt.subplots(figsize=(8, 6))
-                        colors = plt.cm.viridis(np.linspace(0, 1, len(ranking)))
+                        colors = plt.get_cmap('viridis')(np.linspace(0, 1, len(ranking)))
                         bars = ax.bar(range(len(ranking)), ranking["Probabilidad"], color=colors)
                         
                         # Añadir valores en las barras
