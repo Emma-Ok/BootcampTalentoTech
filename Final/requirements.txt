@@ -1,0 +1,15 @@
+# Librerías básicas de análisis de datos
+pandas>=1.5.0
+numpy>=1.20.0
+
+# Visualización
+matplotlib>=3.5.0
+seaborn>=0.12.0
+
+# Mapas interactivos
+folium>=0.14.0
+geopandas>=0.12.0
+
+# Utilidades para manejo de JSON
+json5>=0.9.0
+requests>=2.28.0
