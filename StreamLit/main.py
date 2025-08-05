@@ -968,12 +968,13 @@ Explore las diferentes secciones para conocer la distribución por departamento,
 """)
 
 # Crear estructura de navegación con pestañas
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs([
     "📊 Dashboard General", 
     "🌎 Análisis Geográfico", 
     "👥 Análisis Demográfico",
     "🔍 Análisis Detallado",
-    "📝 Datos"
+    "📝 Datos",
+    "🤖 Recomendador de Plataformas"
 ])
 
 # --- PESTAÑA 1: DASHBOARD GENERAL ---
