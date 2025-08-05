@@ -15,6 +15,9 @@ from streamlit_folium import folium_static
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
 
 warnings.filterwarnings('ignore')
 
@@ -1370,6 +1373,122 @@ with tab5:
             st.write(filtered_data[numeric_cols].describe())
         else:
             st.write("No hay columnas numéricas para mostrar estadísticas o no hay datos disponibles")
+
+# -------------------------------
+# ⚙️ CARGA Y LIMPIEZA DE DATOS
+# -------------------------------
+@st.cache_data
+def cargar_datos():
+    df = pd.read_csv("beneficiarios.csv", sep=None, engine="python")
+    df.columns = df.columns.str.replace('\ufeff', '', regex=False).str.strip()
+    return df
+
+df = cargar_datos()
+
+# -------------------------------
+# 🧪 PREPROCESAMIENTO
+# -------------------------------
+X = df[["EDAD", "GENERO", "DEPARTAMENTO"]]
+y = df["PLATAFORMA_EDUCATIVA"]
+
+preprocesador = ColumnTransformer([
+    ("num", StandardScaler(), ["EDAD"]),
+    ("cat", OneHotEncoder(handle_unknown='ignore'), ["GENERO", "DEPARTAMENTO"])
+])
+
+X_proc = preprocesador.fit_transform(X)
+
+# -------------------------------
+# 🌲 ENTRENAMIENTO DEL MODELO
+# -------------------------------
+modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo_rf.fit(X_proc, y)
+
+# -------------------------------
+# 🔍 FUNCIÓN PARA PREDECIR
+# -------------------------------
+def predecir_plataforma(edad, genero, departamento):
+    nuevo = pd.DataFrame([[edad, genero.upper(), departamento.upper()]],
+                         columns=["EDAD", "GENERO", "DEPARTAMENTO"])
+    nuevo_proc = preprocesador.transform(nuevo)
+
+    prediccion = modelo_rf.predict(nuevo_proc)[0]
+    probabilidades = modelo_rf.predict_proba(nuevo_proc)[0]
+
+    plataformas = modelo_rf.classes_
+    ranking = pd.DataFrame({
+        "PLATAFORMA_EDUCATIVA": plataformas,
+        "Probabilidad": probabilidades
+    }).sort_values(by="Probabilidad", ascending=False)
+
+    return prediccion, ranking
+
+with tab6:
+    st.header("🤖 Recomendador de Plataformas Educativas")
+
+    st.markdown("""
+    ### 📌 ¿Qué hace este recomendador inteligente?
+
+    Este módulo utiliza un modelo de Machine Learning llamado **Random Forest**, el cual ha sido entrenado con información real de beneficiarios de plataformas educativas en Colombia.
+
+    El objetivo es **predecir la plataforma educativa más adecuada** para ti según tres características:
+    - Tu **edad**
+    - Tu **género**
+    - Tu **departamento de residencia**
+
+    El modelo analiza patrones complejos entre miles de registros previos y determina cuál es la **plataforma más recomendada para personas con tu perfil**.
+
+
+    """, unsafe_allow_html=True)
+
+    st.subheader("📥 Ingresa tus datos:")
+
+    edad = st.number_input("Edad", min_value=10, max_value=100, value=25)
+    genero = st.selectbox("Género", sorted(df["GENERO"].dropna().unique()))
+    departamento = st.selectbox("Departamento", sorted(df["DEPARTAMENTO"].dropna().unique()))
+
+    if st.button("🔍 Recomendar Plataforma", key="recomendar_rf"):
+        pred, ranking = predecir_plataforma(edad, genero, departamento)
+        porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
+
+
+
+        # Mostrar el ranking
+        st.subheader("📊 Distribución de Probabilidades")
+        st.dataframe(ranking)
+
+        # Gráfico
+        fig, ax = plt.subplots(figsize=(10, 5))
+        sns.barplot(data=ranking, x="PLATAFORMA_EDUCATIVA", y="Probabilidad", palette="coolwarm", ax=ax)
+        for i, row in ranking.iterrows():
+            ax.text(i, row["Probabilidad"] + 0.01, f"{row['Probabilidad']:.2f}", ha='center', fontsize=9)
+        ax.set_title("Probabilidad por Plataforma")
+        ax.set_ylabel("Probabilidad")
+        ax.set_xlabel("Plataforma Educativa")
+        ax.set_ylim(0, 1.05)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+        st.pyplot(fig)
+        
+        # Recomendación personalizada
+        otros = ranking[ranking["PLATAFORMA_EDUCATIVA"] != pred].copy()
+        otros["Probabilidad"] = otros["Probabilidad"] * 100
+        
+        st.markdown(f"""
+        ### 🧠 Recomendación Personalizada  
+        Para personas de género **{genero.lower()}**, con **{edad} años**, del departamento de **{departamento.title()}**,  
+        la plataforma más recomendada es 👉 **{pred}**,  
+        con una probabilidad del **{porcentaje_pred:.1f}%**.
+        """)
+        
+        # Mostrar otras probabilidades en un expander
+        with st.expander("📌 Ver probabilidades de todas las plataformas"):
+            ranking_copy = ranking.copy()
+            ranking_copy["Probabilidad (%)"] = (ranking_copy["Probabilidad"] * 100).round(1)
+            st.dataframe(ranking_copy[["PLATAFORMA_EDUCATIVA", "Probabilidad (%)"]])
+
+
+
+        st.success(f"🎯 Plataforma recomendada: **{pred}**")
 
 # Añadir footer personalizado
 st.markdown("""
