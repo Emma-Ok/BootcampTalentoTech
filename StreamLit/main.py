@@ -43,7 +43,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* PALETA DE COLORES */
+    /* 🎨 Variables de color para modo claro */
     :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
@@ -52,54 +52,61 @@ st.markdown("""
         --background-color: #f5f0e1;
     }
 
-    /* TITULOS */
+    /* ----------------------------
+       💡 ESTILOS GENERALES
+    ---------------------------- */
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
         border-bottom: 2px solid var(--highlight-color);
         padding-bottom: 10px;
         margin-bottom: 20px;
-        animation: fadeIn 0.8s ease-in-out;
+        animation: fadeIn 0.8s ease-in;
     }
 
-    /* METRICAS */
+    /* 📊 Métricas */
     div[data-testid="stMetric"] {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
-        animation: fadeIn 0.8s ease-in-out;
+        animation: fadeIn 1s ease-in;
     }
 
     div[data-testid="stMetric"]:hover {
         transform: translateY(-5px);
     }
 
-    /* TABLAS */
+    /* 🧮 Tablas */
     div[data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.8s ease-in-out;
+        animation: fadeIn 0.8s ease-in;
     }
 
-    /* WIDGETS */
-    div.stSelectbox, div.stSlider, div.stTextInput {
+    /* 🧰 Widgets */
+    div.stSelectbox, div.stSlider {
         background-color: white;
         border-radius: 8px;
         padding: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        animation: fadeIn 0.8s ease-in-out;
+        animation: fadeIn 0.8s ease-in;
     }
 
-    /* PESTAÑAS */
+    /* 📁 Tabs */
     button[data-baseweb="tab"] {
         font-weight: bold;
         border-radius: 5px 5px 0 0;
         padding: 10px 15px;
         background-color: rgba(255, 255, 255, 0.9);
-        transition: all 0.3s;
+        animation: fadeIn 1s ease-in;
     }
 
     button[data-baseweb="tab"][aria-selected="true"] {
@@ -108,7 +115,7 @@ st.markdown("""
         animation: pulse 1.5s infinite;
     }
 
-    /* FOOTER */
+    /* 📌 Footer */
     .footer {
         background-color: #f0f2f6;
         padding: 10px;
@@ -117,47 +124,91 @@ st.markdown("""
         margin-top: 30px;
         font-size: 0.8em;
         color: #555;
+        animation: fadeIn 1s ease-in;
     }
 
-    /* GRÁFICOS */
+    /* 📉 Gráficos */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.8s ease-in-out;
+        animation: fadeIn 1s ease-in;
     }
 
-    /* LOADER */
+    /* 📊 Barra de carga */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
 
-    /* TOOLTIP PERSONALIZADO */
-    [title]:hover::after {
-        content: attr(title);
-        background: #444;
-        color: #fff;
-        padding: 6px 8px;
-        border-radius: 4px;
-        position: absolute;
-        top: 100%;
-        white-space: nowrap;
-        z-index: 1000;
+    /* ----------------------------
+       🌙 MODO OSCURO AUTOMÁTICO
+    ---------------------------- */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-color: #70a1ff;
+            --secondary-color: #57606f;
+            --text-color: #f1f2f6;
+            --highlight-color: #ffa502;
+            --background-color: #1e272e;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        h1, h2, h3 {
+            color: var(--text-color);
+            border-color: var(--highlight-color);
+        }
+
+        div[data-testid="stMetric"] {
+            background-color: rgba(50, 50, 50, 0.8);
+            color: var(--text-color);
+        }
+
+        div.stSelectbox, div.stSlider {
+            background-color: #2f3542;
+            color: white;
+            border: none;
+        }
+
+        .stPlotlyChart {
+            background-color: #2f3542;
+        }
+
+        .footer {
+            background-color: #2f3542;
+            color: #dfe4ea;
+        }
+
+        button[data-baseweb="tab"] {
+            background-color: #2f3542;
+            color: white;
+        }
+
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: var(--highlight-color);
+            border-bottom: 3px solid var(--highlight-color);
+        }
     }
 
-    /* ANIMACIONES */
+    /* ----------------------------
+       ✨ ANIMACIONES
+    ---------------------------- */
     @keyframes fadeIn {
-        0% {opacity: 0; transform: translateY(10px);}
-        100% {opacity: 1; transform: translateY(0);}
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255,110,64, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(255,110,64, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
 </style>
+
 """, unsafe_allow_html=True)
 
 
