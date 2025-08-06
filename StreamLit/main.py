@@ -42,7 +42,6 @@ st.set_page_config(
 )
 
 
-import streamlit as st
 
 st.markdown("""
 <style>
@@ -142,13 +141,6 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
-
 
 
 # Configuraciones globales de gráficos
