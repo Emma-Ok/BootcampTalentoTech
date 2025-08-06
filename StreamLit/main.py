@@ -42,8 +42,6 @@ st.set_page_config(
 )
 
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-
 <style>
     :root {
         --primary-color: #4e89ae;
@@ -51,101 +49,102 @@ st.markdown("""
         --text-color: #1e3d59;
         --highlight-color: #ff6e40;
         --background-color: #f5f0e1;
-        --font-family: 'Roboto', sans-serif;
     }
 
-    html, body, [class*="css"] {
-        font-family: var(--font-family);
-        background-color: var(--background-color);
-    }
-
+    /* Títulos */
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
         border-bottom: 2px solid var(--highlight-color);
-        padding-bottom: 8px;
+        padding-bottom: 10px;
         margin-bottom: 20px;
+        animation: fadeIn 1s ease-in-out both;
     }
 
     /* Métricas */
     div[data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0.85);
+        background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
         border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        animation: fadeIn 0.8s ease-in-out both;
     }
-
     div[data-testid="stMetric"]:hover {
         transform: scale(1.03);
     }
 
     /* Tablas */
     div[data-testid="stTable"] {
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease;
+        animation: fadeIn 1s ease-in-out both;
     }
 
-    div[data-testid="stTable"]:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Selectbox y slider */
+    /* Widgets interactivos */
     div.stSelectbox, div.stSlider {
         background-color: white;
         border-radius: 8px;
-        padding: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        animation: fadeIn 1s ease-in-out both;
     }
 
-    /* Botones de pestaña */
+    /* Pestañas */
     button[data-baseweb="tab"] {
         font-weight: bold;
-        border-radius: 6px 6px 0 0;
-        padding: 10px 16px;
-        margin-right: 2px;
-        background-color: rgba(255, 255, 255, 0.8);
-        transition: background-color 0.2s ease;
+        border-radius: 5px 5px 0 0;
+        padding: 10px 15px;
+        background-color: rgba(255, 255, 255, 0.9);
     }
-
-    button[data-baseweb="tab"]:hover {
-        background-color: #e0e0e0;
-    }
-
     button[data-baseweb="tab"][aria-selected="true"] {
         border-bottom: 3px solid var(--highlight-color);
         color: var(--text-color);
-        background-color: white;
+        animation: pulse 1.5s infinite;
     }
 
     /* Footer */
     .footer {
-        background-color: #e8ecf3;
-        padding: 12px;
-        border-radius: 10px;
+        background-color: #f0f2f6;
+        padding: 10px;
+        border-radius: 8px;
         text-align: center;
-        margin-top: 40px;
-        font-size: 0.85em;
-        color: #333;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        margin-top: 30px;
+        font-size: 0.8em;
+        color: #555;
+        animation: fadeIn 1.5s ease-in-out both;
     }
 
-    /* Plotly Chart */
+    /* Gráficos */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 1s ease-in-out both;
     }
 
-    /* Barra de carga */
+    /* Progreso */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
+
+    /* FadeIn */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Pulse */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+    }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # Configuraciones globales de gráficos
