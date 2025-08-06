@@ -41,94 +41,112 @@ st.set_page_config(
     }
 )
 
-# Añadir CSS personalizado para mejorar la apariencia
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-    /* Personalización de colores y estilos */
     :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
         --text-color: #1e3d59;
         --highlight-color: #ff6e40;
         --background-color: #f5f0e1;
+        --font-family: 'Roboto', sans-serif;
     }
-    
-    /* Estilo para títulos */
+
+    html, body, [class*="css"] {
+        font-family: var(--font-family);
+        background-color: var(--background-color);
+    }
+
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
         border-bottom: 2px solid var(--highlight-color);
-        padding-bottom: 10px;
+        padding-bottom: 8px;
         margin-bottom: 20px;
     }
-    
-    /* Estilo para métricas */
+
+    /* Métricas */
     div[data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.85);
         padding: 15px 10px;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease-in-out;
     }
-    
+
     div[data-testid="stMetric"]:hover {
-        transform: translateY(-5px);
+        transform: scale(1.03);
     }
-    
-    /* Estilo para tablas */
+
+    /* Tablas */
     div[data-testid="stTable"] {
-        border-radius: 8px;
+        border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
     }
-    
-    /* Estilo para widgets interactivos */
+
+    div[data-testid="stTable"]:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Selectbox y slider */
     div.stSelectbox, div.stSlider {
         background-color: white;
         border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        padding: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
-    
-    /* Mejora visual de las pestañas */
+
+    /* Botones de pestaña */
     button[data-baseweb="tab"] {
         font-weight: bold;
-        border-radius: 5px 5px 0 0;
-        padding: 10px 15px;
-        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 6px 6px 0 0;
+        padding: 10px 16px;
+        margin-right: 2px;
+        background-color: rgba(255, 255, 255, 0.8);
+        transition: background-color 0.2s ease;
     }
-    
+
+    button[data-baseweb="tab"]:hover {
+        background-color: #e0e0e0;
+    }
+
     button[data-baseweb="tab"][aria-selected="true"] {
         border-bottom: 3px solid var(--highlight-color);
         color: var(--text-color);
+        background-color: white;
     }
-    
-    /* Footer personalizado */
+
+    /* Footer */
     .footer {
-        background-color: #f0f2f6;
-        padding: 10px;
-        border-radius: 8px;
+        background-color: #e8ecf3;
+        padding: 12px;
+        border-radius: 10px;
         text-align: center;
-        margin-top: 30px;
-        font-size: 0.8em;
-        color: #555;
+        margin-top: 40px;
+        font-size: 0.85em;
+        color: #333;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    
-    /* Mejora visualización de gráficos */
+
+    /* Plotly Chart */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.07);
     }
-    
-    /* Animación de carga */
+
+    /* Barra de carga */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # Configuraciones globales de gráficos
 plt.style.use('default')
