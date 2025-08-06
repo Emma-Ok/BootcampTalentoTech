@@ -46,73 +46,69 @@ import streamlit as st
 # Botón para activar modo oscuro manualmente
 modo_oscuro = st.toggle("🌙 Activar modo oscuro")
 
-st.markdown(f"""
+import streamlit as st
+
+st.markdown("""
 <style>
-    :root {{
+    /* Variables base */
+    :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
         --text-color: #1e3d59;
         --highlight-color: #ff6e40;
         --background-color: #f5f0e1;
-    }}
+    }
 
-    html, body, [class*="css"] {{
-        background-color: {'#121212' if modo_oscuro else 'var(--background-color)'};
-        color: {'#f0f0f0' if modo_oscuro else 'var(--text-color)'};
-    }}
-
-    h1, h2, h3 {{
-        color: {'#f5f5f5' if modo_oscuro else 'var(--text-color)'};
+    /* Estilo para títulos */
+    h1, h2, h3 {
+        color: var(--text-color);
         font-weight: 700;
         border-bottom: 2px solid var(--highlight-color);
         padding-bottom: 10px;
         margin-bottom: 20px;
-        animation: fadeIn 0.8s ease-in-out;
-    }}
+    }
 
-    div[data-testid="stMetric"] {{
-        background-color: {'#1e1e1e' if modo_oscuro else 'rgba(255, 255, 255, 0.8)'};
+    /* Estilo para métricas */
+    div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
-        animation: fadeIn 0.8s ease-in-out;
-    }}
-
-    div[data-testid="stMetric"]:hover {{
+    }
+    div[data-testid="stMetric"]:hover {
         transform: translateY(-5px);
-    }}
+    }
 
-    div[data-testid="stTable"] {{
+    /* Estilo para tablas */
+    div[data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.8s ease-in-out;
-    }}
+    }
 
-    div.stSelectbox, div.stSlider, div.stTextInput {{
-        background-color: {'#2c2c2c' if modo_oscuro else 'white'};
+    /* Estilo para widgets */
+    div.stSelectbox, div.stSlider {
+        background-color: white;
         border-radius: 8px;
         padding: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        animation: fadeIn 0.8s ease-in-out;
-    }}
+    }
 
-    button[data-baseweb="tab"] {{
+    /* Pestañas */
+    button[data-baseweb="tab"] {
         font-weight: bold;
         border-radius: 5px 5px 0 0;
         padding: 10px 15px;
         background-color: rgba(255, 255, 255, 0.9);
-        transition: all 0.3s;
-    }}
-
-    button[data-baseweb="tab"][aria-selected="true"] {{
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
         border-bottom: 3px solid var(--highlight-color);
         color: var(--text-color);
-        animation: pulse 1.5s infinite;
-    }}
+    }
 
-    .footer {{
+    /* Footer */
+    .footer {
         background-color: #f0f2f6;
         padding: 10px;
         border-radius: 8px;
@@ -120,44 +116,46 @@ st.markdown(f"""
         margin-top: 30px;
         font-size: 0.8em;
         color: #555;
-    }}
+    }
 
-    .stPlotlyChart {{
-        background-color: {'#1f1f1f' if modo_oscuro else 'white'};
+    /* Gráficos */
+    .stPlotlyChart {
+        background-color: white;
         padding: 10px;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.8s ease-in-out;
-    }}
+    }
 
-    .stProgress > div > div > div > div {{
+    /* Animación de carga */
+    .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
-    }}
+    }
 
-    [title]:hover::after {{
-        content: attr(title);
-        background: #444;
-        color: #fff;
-        padding: 6px 8px;
-        border-radius: 4px;
-        position: absolute;
-        top: 100%;
-        white-space: nowrap;
+    /* Logo fijo en esquina */
+    .logo-fixed {
+        position: fixed;
+        top: 10px;
+        left: 10px;
         z-index: 1000;
-    }}
-
-    @keyframes fadeIn {{
-        0% {{opacity: 0; transform: translateY(10px);}}
-        100% {{opacity: 1; transform: translateY(0);}}
-    }}
-
-    @keyframes pulse {{
-        0% {{ box-shadow: 0 0 0 0 rgba(255,110,64, 0.7); }}
-        70% {{ box-shadow: 0 0 0 10px rgba(255,110,64, 0); }}
-        100% {{ box-shadow: 0 0 0 0 rgba(255,110,64, 0); }}
-    }}
+        background-color: transparent;
+    }
+    .logo-fixed img {
+        height: 50px;
+        opacity: 0.85;
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    .logo-fixed img:hover {
+        transform: scale(1.05);
+        opacity: 1;
+    }
 </style>
+<div class="logo-fixed">
+    <a href="https://github.com/Emma-Ok/BootcampTalentoTech" target="_blank">
+        <img src="https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/Escudo-UdeA.svg.png" alt="Escudo UdeA">
+    </a>
+</div>
 """, unsafe_allow_html=True)
+
 
 
 
