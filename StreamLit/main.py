@@ -146,23 +146,36 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
     }
 
-    /* Logos fijos arriba a la derecha */
+    /* Logos adaptables */
     .logo-container {
-        position: absolute;
+        position: fixed;
         top: 10px;
         right: 10px;
         display: flex;
         gap: 10px;
         z-index: 1000;
+        flex-wrap: wrap;
     }
     .logo-container img {
-        height: 60px;
+        height: 48px;
+        max-width: 100%;
         opacity: 0.9;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     }
     .logo-container img:hover {
         transform: scale(1.05);
         opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+        .logo-container {
+            top: 5px;
+            right: 5px;
+            gap: 5px;
+        }
+        .logo-container img {
+            height: 40px;
+        }
     }
 </style>
 
@@ -175,6 +188,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
