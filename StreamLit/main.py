@@ -42,6 +42,7 @@ st.set_page_config(
 )
 
 
+
 st.markdown("""
 <style>
     :root {
@@ -146,24 +147,27 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
     }
 
-    /* Logos adaptables */
+    /* Logos adaptables (más visibles y sin solaparse con sidebar) */
     .logo-container {
-        position: fixed;
+        position: absolute;
         top: 10px;
-        right: 10px;
+        right: 15px;
         display: flex;
-        gap: 10px;
+        gap: 12px;
         z-index: 1000;
-        flex-wrap: wrap;
+        background: rgba(255,255,255,0.9);
+        padding: 4px 8px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .logo-container img {
-        height: 48px;
+        height: 54px;
         max-width: 100%;
         opacity: 0.9;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     }
     .logo-container img:hover {
-        transform: scale(1.05);
+        transform: scale(1.08);
         opacity: 1;
     }
 
@@ -171,10 +175,11 @@ st.markdown("""
         .logo-container {
             top: 5px;
             right: 5px;
-            gap: 5px;
+            gap: 6px;
+            padding: 2px 6px;
         }
         .logo-container img {
-            height: 40px;
+            height: 42px;
         }
     }
 </style>
@@ -188,6 +193,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
