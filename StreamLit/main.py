@@ -41,10 +41,6 @@ st.set_page_config(
     }
 )
 
-import streamlit as st
-
-
-import streamlit as st
 
 st.markdown("""
 <style>
