@@ -1326,8 +1326,8 @@ Explore las diferentes secciones para conocer la distribución por departamento,
 
 # Crear estructura de navegación con pestañas
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8,tab9 = st.tabs([
-    "� Resumen del Proyecto",
-    "�📊 Dashboard General", 
+    "🎓 Resumen del Proyecto",
+    "📊 Dashboard General", 
     "🌎 Análisis Geográfico", 
     "👥 Análisis Demográfico",
     "🏘️ Análisis por Municipios",
