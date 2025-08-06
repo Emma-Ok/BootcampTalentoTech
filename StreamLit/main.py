@@ -43,11 +43,9 @@ st.set_page_config(
 
 
 
-import streamlit as st
 
 st.markdown("""
 <style>
-    /* PALETA DE COLORES */
     :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
@@ -56,7 +54,6 @@ st.markdown("""
         --background-color: #f5f0e1;
     }
 
-    /* TITULOS */
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
@@ -66,7 +63,6 @@ st.markdown("""
         animation: fadeIn 0.8s ease-in-out;
     }
 
-    /* METRICAS */
     [data-testid="stMetric"] {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
@@ -79,7 +75,6 @@ st.markdown("""
         transform: translateY(-5px);
     }
 
-    /* TABLAS */
     [data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
@@ -87,8 +82,7 @@ st.markdown("""
         animation: fadeIn 0.8s ease-in-out;
     }
 
-    /* WIDGETS */
-    .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
+    .stSelectbox, .stSlider, .stNumberInput, .stTextInput {
         background-color: white !important;
         border-radius: 8px !important;
         padding: 10px !important;
@@ -96,7 +90,6 @@ st.markdown("""
         animation: fadeIn 0.8s ease-in-out;
     }
 
-    /* PESTAÑAS */
     button[data-baseweb="tab"] {
         font-weight: bold;
         border-radius: 5px 5px 0 0;
@@ -110,7 +103,6 @@ st.markdown("""
         animation: pulse 1.5s infinite;
     }
 
-    /* FOOTER */
     .footer {
         background-color: #f0f2f6;
         padding: 10px;
@@ -121,7 +113,6 @@ st.markdown("""
         color: #555;
     }
 
-    /* GRÁFICOS */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
@@ -130,12 +121,10 @@ st.markdown("""
         animation: fadeIn 0.8s ease-in-out;
     }
 
-    /* LOADER */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
 
-    /* TOOLTIP PERSONALIZADO */
     [title]:hover::after {
         content: attr(title);
         background: #444;
@@ -148,7 +137,6 @@ st.markdown("""
         z-index: 1000;
     }
 
-    /* ANIMACIONES */
     @keyframes fadeIn {
         0% {opacity: 0; transform: translateY(10px);}
         100% {opacity: 1; transform: translateY(0);}
@@ -160,11 +148,11 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
     }
 
-    /* LOGO FIJO */
+    /* Logo fijo arriba a la derecha (fuera del sidebar) */
     .logo-fixed {
-        position: fixed;
+        position: absolute;
         top: 10px;
-        left: 10px;
+        right: 10px;
         z-index: 1000;
         background-color: transparent;
     }
@@ -186,12 +174,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
-# Configuraciones globales de gráficos
-plt.style.use('default')
-sns.set_palette("husl")
-plt.rcParams['figure.figsize'] = (12, 8)
-plt.rcParams['font.size'] = 10
 
 # Función para cargar datos
 @st.cache_data
