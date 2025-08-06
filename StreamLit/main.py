@@ -1329,7 +1329,7 @@ with tab1:
         **4. Sistema de Recomendación**
         - Desarrollar un modelo de Machine Learning para recomendar plataformas
         - Utilizar características demográficas para personalizar recomendaciones
-        - Proporcionar probabilidades de afinidad por plataforma
+        - Proporcionar Porcentajees de afinidad por plataforma
         
         ### 🎖️ Impacto Esperado
         - Mejorar la asignación de recursos educativos
@@ -1452,7 +1452,7 @@ with tab1:
         **Sistema de Recomendación** 🎯
         - Precisión del modelo de recomendación
         - Personalización basada en perfil demográfico
-        - Probabilidades de afinidad por plataforma
+        - Porcentajees de afinidad por plataforma
         """)
     
     # Equipo y créditos
@@ -2280,13 +2280,13 @@ def predecir_plataforma(edad, genero, departamento):
         nuevo_proc = preprocesador.transform(nuevo)
 
         prediccion = modelo_rf.predict(nuevo_proc)[0]
-        probabilidades = modelo_rf.predict_proba(nuevo_proc)[0]
+        Porcentajees = modelo_rf.predict_proba(nuevo_proc)[0]
 
         plataformas = modelo_rf.classes_
         ranking = pd.DataFrame({
             "PLATAFORMA_EDUCATIVA": plataformas,
-            "Probabilidad": probabilidades
-        }).sort_values(by="Probabilidad", ascending=False)
+            "Porcentaje": Porcentajees
+        }).sort_values(by="Porcentaje", ascending=False)
 
         return prediccion, ranking
     except Exception as e:
@@ -2355,47 +2355,47 @@ with tab8:
                 if pred == "Error" or ranking.empty:
                     st.error("❌ Error al generar la recomendación. Intenta con otros datos.")
                 else:
-                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
+                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Porcentaje"].values[0] * 100
 
                     # Mostrar la recomendación principal con estilo
-                    st.success(f"🎯 **Plataforma recomendada: {pred}** ({porcentaje_pred:.1f}% de probabilidad)")
+                    st.success(f"🎯 **Plataforma recomendada: {pred}** ({porcentaje_pred:.1f}% de Porcentaje)")
                     
                     # Recomendación personalizada
                     st.markdown(f"""
                     ### 🧠 Recomendación Personalizada  
                     Para personas de género **{genero.lower()}**, con **{edad} años**, del departamento de **{departamento.title()}**,  
                     la plataforma más recomendada es 👉 **{pred}**,  
-                    con una probabilidad del **{porcentaje_pred:.1f}%**.
+                    con una Porcentaje del **{porcentaje_pred:.1f}%**.
                     """)
 
                     # Mostrar el ranking en dos columnas
                     col1, col2 = st.columns(2)
                     
                     with col1:
-                        st.subheader("📊 Distribución de Probabilidades")
+                        st.subheader("📊 Distribución de Porcentajees")
                         # Crear una tabla más atractiva
                         ranking_display = ranking.copy()
-                        ranking_display["Probabilidad (%)"] = (ranking_display["Probabilidad"] * 100).round(1)
-                        ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Probabilidad (%)"]]
-                        ranking_display.columns = ["Plataforma", "Probabilidad (%)"]
+                        ranking_display["Porcentaje (%)"] = (ranking_display["Porcentaje"] * 100).round(1)
+                        ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Porcentaje (%)"]]
+                        ranking_display.columns = ["Plataforma", "Porcentaje (%)"]
                         st.dataframe(ranking_display, use_container_width=True)
 
                     with col2:
                         # Gráfico mejorado
                         fig, ax = plt.subplots(figsize=(8, 6))
                         colors = plt.get_cmap('viridis')(np.linspace(0, 1, len(ranking)))
-                        bars = ax.bar(range(len(ranking)), ranking["Probabilidad"], color=colors)
+                        bars = ax.bar(range(len(ranking)), ranking["Porcentaje"], color=colors)
                         
                         # Añadir valores en las barras
-                        for i, (bar, prob) in enumerate(zip(bars, ranking["Probabilidad"])):
+                        for i, (bar, prob) in enumerate(zip(bars, ranking["Porcentaje"])):
                             height = bar.get_height()
                             ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                                    f'{prob:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
                         
-                        ax.set_title("Probabilidad por Plataforma", fontsize=14, fontweight='bold')
-                        ax.set_ylabel("Probabilidad", fontsize=12)
+                        ax.set_title("Porcentaje por Plataforma", fontsize=14, fontweight='bold')
+                        ax.set_ylabel("Porcentaje", fontsize=12)
                         ax.set_xlabel("Plataforma Educativa", fontsize=12)
-                        ax.set_ylim(0, max(ranking["Probabilidad"]) * 1.1)
+                        ax.set_ylim(0, max(ranking["Porcentaje"]) * 1.1)
                         ax.set_xticks(range(len(ranking)))
                         ax.set_xticklabels([plat[:8] + '...' if len(plat) > 8 else plat for plat in ranking["PLATAFORMA_EDUCATIVA"]], 
                                          rotation=45, ha='right')
@@ -2406,15 +2406,15 @@ with tab8:
                     with st.expander("📌 Ver detalles de todas las plataformas"):
                         # Crear una tabla más detallada
                         ranking_detailed = ranking.copy()
-                        ranking_detailed["Probabilidad (%)"] = (ranking_detailed["Probabilidad"] * 100).round(2)
-                        ranking_detailed["Recomendación"] = ranking_detailed["Probabilidad (%)"].apply(
+                        ranking_detailed["Porcentaje (%)"] = (ranking_detailed["Porcentaje"] * 100).round(2)
+                        ranking_detailed["Recomendación"] = ranking_detailed["Porcentaje (%)"].apply(
                             lambda x: "🥇 Altamente recomendada" if x >= 30 
                                     else "🥈 Recomendada" if x >= 15 
                                     else "🥉 Considerar como opción" if x >= 5 
                                     else "⚪ Menos probable"
                         )
-                        ranking_detailed.columns = ["Plataforma", "Probabilidad", "Probabilidad (%)", "Nivel de Recomendación"]
-                        st.dataframe(ranking_detailed[["Plataforma", "Probabilidad (%)", "Nivel de Recomendación"]], 
+                        ranking_detailed.columns = ["Plataforma", "Porcentaje", "Porcentaje (%)", "Nivel de Recomendación"]
+                        st.dataframe(ranking_detailed[["Plataforma", "Porcentaje (%)", "Nivel de Recomendación"]], 
                                    use_container_width=True)
 
 def cargar_datos():
