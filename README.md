@@ -18,7 +18,7 @@ Este proyecto presenta un **análisis interactivo** de datos sobre el uso de pla
 
 ## 🚀 Demostración
 
-![Demo de la Aplicación](https://bootcamptalentotech-5x2xyljsu6z9u25axmxm8o.streamlit.app/)
+https://bootcamptalentotech-5x2xyljsu6z9u25axmxm8o.streamlit.app/
 
 ## 📋 Objetivos del Proyecto
 
