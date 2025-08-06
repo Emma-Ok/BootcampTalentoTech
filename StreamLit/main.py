@@ -286,7 +286,7 @@ def grafico_genero(df):
     # Crear figura con tamaño adecuado
     fig, ax = plt.subplots(figsize=(8, 8), facecolor='white')
     
-    # Función para formato de porcentaje corregida
+    # Función para formato de Probabilidad corregida
     def format_autopct(pct, sizes):
         total = sum(sizes)
         val = int(round(pct*total/100))
@@ -383,7 +383,7 @@ def grafico_plataformas(df):
     # Crear DataFrame
     df_conteo = conteo.reset_index()
     df_conteo.columns = ['Plataforma', 'Cantidad']
-    df_conteo['Porcentaje'] = (df_conteo['Cantidad'] / total * 100).round(1)
+    df_conteo['Probabilidad'] = (df_conteo['Cantidad'] / total * 100).round(1)
     
     # Asignar colores tipo semáforo según % y uso
     colores = []
@@ -392,7 +392,7 @@ def grafico_plataformas(df):
     for _, row in df_conteo.iterrows():
         if row['Cantidad'] == max_val:
             colores.append('#e74c3c')  # rojo
-        elif row['Porcentaje'] < 10:
+        elif row['Probabilidad'] < 10:
             colores.append('#2ecc71')  # verde
         else:
             colores.append('#f39c12')  # naranja
@@ -413,7 +413,7 @@ def grafico_plataformas(df):
         plt.text(
             i,
             row['Cantidad'] + total * 0.01,
-            f"{row['Cantidad']} ({row['Porcentaje']}%)",
+            f"{row['Cantidad']} ({row['Probabilidad']}%)",
             ha='center',
             va='bottom',
             fontsize=9,
@@ -450,10 +450,10 @@ def grafico_plataformas_genero(df):
     orden = cross_gen_plat.sum(axis=1).sort_values(ascending=False).index
     cross_gen_plat_sorted = cross_gen_plat.loc[orden]
     
-    # Calcular porcentajes por fila
+    # Calcular Probabilidads por fila
     cross_pct = cross_gen_plat_sorted.div(cross_gen_plat_sorted.sum(axis=1), axis=0) * 100
     
-    # Etiquetas combinadas: cantidad + porcentaje
+    # Etiquetas combinadas: cantidad + Probabilidad
     labels = cross_gen_plat_sorted.astype(str) + "\n(" + cross_pct.round(1).astype(str) + "%)"
     
     # Configuración general de estilo
@@ -501,10 +501,10 @@ def grafico_plataformas_edad(df):
     platform_order = cross.sum(axis=1).sort_values(ascending=False).index
     cross = cross.loc[platform_order]
     
-    # Calcular porcentajes por fila
+    # Calcular Probabilidads por fila
     cross_pct = cross.div(cross.sum(axis=1), axis=0) * 100
     
-    # Crear anotaciones con valor + porcentaje
+    # Crear anotaciones con valor + Probabilidad
     annot = cross.astype(str) + '\n' + cross_pct.round(1).astype(str) + '%'
     
     # Visualización
@@ -614,9 +614,9 @@ def crear_mapa_beneficiarios(df):
     distribucion_matriz = conteo_plataformas.pivot(index='DEPARTAMENTO', columns='PLATAFORMA_EDUCATIVA', values='cantidad').fillna(0)
     distribucion_matriz['TOTAL'] = distribucion_matriz.sum(axis=1)
     
-    # Calcular porcentajes por departamento
-    distribucion_porcentajes = distribucion_matriz.div(distribucion_matriz['TOTAL'], axis=0) * 100
-    distribucion_porcentajes = distribucion_porcentajes.drop('TOTAL', axis=1)
+    # Calcular Probabilidads por departamento
+    distribucion_Probabilidads = distribucion_matriz.div(distribucion_matriz['TOTAL'], axis=0) * 100
+    distribucion_Probabilidads = distribucion_Probabilidads.drop('TOTAL', axis=1)
     
     # Colores más claros y visibles
     colores_claros = {
@@ -631,17 +631,17 @@ def crear_mapa_beneficiarios(df):
     # Función para asignar color según plataforma dominante
     def crear_color_dominante(departamento):
         """Asigna color de la plataforma dominante"""
-        if departamento not in distribucion_porcentajes.index:
+        if departamento not in distribucion_Probabilidads.index:
             return '#f0f0f0'  # Gris muy claro
             
-        dept_data = distribucion_porcentajes.loc[departamento]
+        dept_data = distribucion_Probabilidads.loc[departamento]
         plataforma_dominante = dept_data.idxmax()
-        porcentaje_dominante = dept_data.max()
+        Probabilidad_dominante = dept_data.max()
         
         color_base = colores_claros.get(plataforma_dominante, '#808080')
         
         # Hacer el color más claro si la dominancia no es muy alta
-        if porcentaje_dominante < 50:
+        if Probabilidad_dominante < 50:
             return f"{color_base}80"  # Añadir transparencia
         else:
             return color_base
@@ -653,15 +653,15 @@ def crear_mapa_beneficiarios(df):
             return "Sin datos", 0
             
         total = int(distribucion_matriz.loc[departamento, 'TOTAL'])
-        dept_data = distribucion_porcentajes.loc[departamento]
+        dept_data = distribucion_Probabilidads.loc[departamento]
         
         # Solo top 3 plataformas para tooltip
         top_3 = dept_data.nlargest(3)
         
         resumen_parts = []
-        for plataforma, porcentaje in top_3.items():
-            if porcentaje >= 5:  # Solo mostrar si tiene al menos 5%
-                resumen_parts.append(f"{plataforma}: {porcentaje:.0f}%")
+        for plataforma, Probabilidad in top_3.items():
+            if Probabilidad >= 5:  # Solo mostrar si tiene al menos 5%
+                resumen_parts.append(f"{plataforma}: {Probabilidad:.0f}%")
                 
         resumen = " | ".join(resumen_parts[:2])  # Solo top 2 para ser más corto
         if len(top_3) > 2 and top_3.iloc[2] >= 5:
@@ -693,13 +693,13 @@ def crear_mapa_beneficiarios(df):
             feature['properties']['color_dominante'] = crear_color_dominante(nombre_dpto)
             
             # Información de la plataforma dominante
-            if nombre_dpto in distribucion_porcentajes.index:
-                dept_data = distribucion_porcentajes.loc[nombre_dpto]
+            if nombre_dpto in distribucion_Probabilidads.index:
+                dept_data = distribucion_Probabilidads.loc[nombre_dpto]
                 feature['properties']['plataforma_principal'] = dept_data.idxmax()
-                feature['properties']['porcentaje_principal'] = f"{dept_data.max():.0f}%"
+                feature['properties']['Probabilidad_principal'] = f"{dept_data.max():.0f}%"
             else:
                 feature['properties']['plataforma_principal'] = 'Sin datos'
-                feature['properties']['porcentaje_principal'] = '0%'
+                feature['properties']['Probabilidad_principal'] = '0%'
         
         # Función de estilo para evitar error de pickle con lambda
         def style_function(feature):
@@ -715,8 +715,8 @@ def crear_mapa_beneficiarios(df):
             geojson_dominante,
             style_function=style_function,
             tooltip=GeoJsonTooltip(
-                fields=['NOMBRE_DPT', 'total_participantes', 'plataforma_principal', 'porcentaje_principal'],
-                aliases=['Departamento:', 'Total beneficiarios:', 'Plataforma principal:', 'Porcentaje:'],
+                fields=['NOMBRE_DPT', 'total_participantes', 'plataforma_principal', 'Probabilidad_principal'],
+                aliases=['Departamento:', 'Total beneficiarios:', 'Plataforma principal:', 'Probabilidad:'],
                 localize=True,
                 style=("background-color: white; color: #333333; font-family: arial; font-size: 11px; padding: 6px; border-radius: 3px; max-width: 250px;")
             )
@@ -745,7 +745,7 @@ def crear_mapa_beneficiarios(df):
         mapa_dominante.get_root().html.add_child(folium.Element(legend_html))
         
         # Devolvemos el mapa y las matrices para su uso posterior, pero no como un objeto cacheable
-        return mapa_dominante, distribucion_matriz, distribucion_porcentajes
+        return mapa_dominante, distribucion_matriz, distribucion_Probabilidads
         
     except Exception as e:
         st.error(f"Error al crear el mapa: {e}")
@@ -764,9 +764,9 @@ def crear_mapa_proporcional(df):
     distribucion_matriz = conteo_plataformas.pivot(index='DEPARTAMENTO', columns='PLATAFORMA_EDUCATIVA', values='cantidad').fillna(0)
     distribucion_matriz['TOTAL'] = distribucion_matriz.sum(axis=1)
 
-    # Calcular porcentajes por departamento
-    distribucion_porcentajes = distribucion_matriz.div(distribucion_matriz['TOTAL'], axis=0) * 100
-    distribucion_porcentajes = distribucion_porcentajes.drop('TOTAL', axis=1)
+    # Calcular Probabilidads por departamento
+    distribucion_Probabilidads = distribucion_matriz.div(distribucion_matriz['TOTAL'], axis=0) * 100
+    distribucion_Probabilidads = distribucion_Probabilidads.drop('TOTAL', axis=1)
 
     # 3. Colores más claros y visibles
     colores_claros = {
@@ -783,17 +783,17 @@ def crear_mapa_proporcional(df):
         """
         Asigna color de la plataforma dominante pero más claro y visible
         """
-        if departamento not in distribucion_porcentajes.index:
+        if departamento not in distribucion_Probabilidads.index:
             return '#f0f0f0'  # Gris muy claro
 
-        dept_data = distribucion_porcentajes.loc[departamento]
+        dept_data = distribucion_Probabilidads.loc[departamento]
         plataforma_dominante = dept_data.idxmax()
-        porcentaje_dominante = dept_data.max()
+        Probabilidad_dominante = dept_data.max()
 
         color_base = colores_claros.get(plataforma_dominante, '#808080')
 
         # Hacer el color más claro si la dominancia no es muy alta
-        if porcentaje_dominante < 50:
+        if Probabilidad_dominante < 50:
             # Mezclar con blanco para hacer más claro
             return f"{color_base}80"  # Añadir transparencia
         else:
@@ -848,7 +848,7 @@ def crear_mapa_proporcional(df):
         for dept in top_departamentos.index[:10]:  # Solo top 10 para no saturar
             if dept in coordenadas_deptos:
                 coords = coordenadas_deptos[dept]
-                dept_data = distribucion_porcentajes.loc[dept]
+                dept_data = distribucion_Probabilidads.loc[dept]
                 total_users = int(distribucion_matriz.loc[dept, 'TOTAL'])
 
                 # Crear HTML para gráfico de barras mini
@@ -860,15 +860,15 @@ def crear_mapa_proporcional(df):
                     <span style="font-size: 9px; color: #666;">{total_users} usuarios</span><br>
                 """
 
-                for plataforma, porcentaje in top_3_plat.items():
-                    if porcentaje >= 3:
+                for plataforma, Probabilidad in top_3_plat.items():
+                    if Probabilidad >= 3:
                         color = colores_claros.get(plataforma, '#808080')
-                        ancho = int(porcentaje * 0.8)  # Escalar para que quepa
+                        ancho = int(Probabilidad * 0.8)  # Escalar para que quepa
                         barras_html += f"""
                         <div style="margin: 2px 0;">
                             <span style="font-size: 8px; display: inline-block; width: 40px;">{plataforma[:4]}</span>
                             <div style="display: inline-block; background: {color}; width: {ancho}px; height: 8px; margin-left: 2px;"></div>
-                            <span style="font-size: 8px; margin-left: 2px;">{porcentaje:.0f}%</span>
+                            <span style="font-size: 8px; margin-left: 2px;">{Probabilidad:.0f}%</span>
                         </div>
                         """
 
@@ -1228,8 +1228,8 @@ with st.sidebar.expander("📊 Resumen de Filtros", expanded=False):
     st.write(f"**Registros después de filtros:** {len(df_filtrado):,}")
     
     if len(df_filtrado) != len(df):
-        porcentaje_filtrado = (len(df_filtrado) / len(df)) * 100
-        st.write(f"**Porcentaje mostrado:** {porcentaje_filtrado:.1f}%")
+        Probabilidad_filtrado = (len(df_filtrado) / len(df)) * 100
+        st.write(f"**Probabilidad mostrado:** {Probabilidad_filtrado:.1f}%")
         
         # Mostrar filtros activos
         filtros_activos = []
@@ -1329,7 +1329,7 @@ with tab1:
         **4. Sistema de Recomendación**
         - Desarrollar un modelo de Machine Learning para recomendar plataformas
         - Utilizar características demográficas para personalizar recomendaciones
-        - Proporcionar Porcentajees de afinidad por plataforma
+        - Proporcionar Probabilidades de afinidad por plataforma
         
         ### 🎖️ Impacto Esperado
         - Mejorar la asignación de recursos educativos
@@ -1452,7 +1452,7 @@ with tab1:
         **Sistema de Recomendación** 🎯
         - Precisión del modelo de recomendación
         - Personalización basada en perfil demográfico
-        - Porcentajees de afinidad por plataforma
+        - Probabilidades de afinidad por plataforma
         """)
     
     # Equipo y créditos
@@ -1677,7 +1677,7 @@ with tab3:
     elif viz_type == "Mapa Interactivo: Plataforma Dominante":
         # Añadir spinner de carga para el mapa
         with st.spinner('Generando mapa interactivo... Esto puede tomar unos momentos'):
-            mapa_dominante, distribucion_matriz, distribucion_porcentajes = crear_mapa_beneficiarios(df_actual)
+            mapa_dominante, distribucion_matriz, distribucion_Probabilidads = crear_mapa_beneficiarios(df_actual)
             if mapa_dominante:
                 st.success('¡Mapa generado exitosamente!')
                 # Ajustar altura del mapa según el tema seleccionado
@@ -1749,15 +1749,15 @@ with tab3:
         
         for dept in top5.index:
             total = int(top5.loc[dept, 'TOTAL'])
-            if dept in distribucion_porcentajes.index:
-                dept_dist = distribucion_porcentajes.loc[dept]
+            if dept in distribucion_Probabilidads.index:
+                dept_dist = distribucion_Probabilidads.loc[dept]
                 principal = dept_dist.idxmax()
-                porcentaje = dept_dist.max()
+                Probabilidad = dept_dist.max()
                 top5_data.append({
                     "Departamento": dept,
                     "Total Usuarios": f"{total:,}",
                     "Plataforma Principal": principal,
-                    "Porcentaje": f"{porcentaje:.1f}%"
+                    "Probabilidad": f"{Probabilidad:.1f}%"
                 })
         
         if top5_data:
@@ -1953,8 +1953,8 @@ with tab5:
         
         with col1:
             st.info(f"📊 **{len(baja_data)}** municipios tienen ≤{limite_baja} beneficiarios")
-            porcentaje_baja = (len(baja_data) / len(municipios_completo)) * 100
-            st.write(f"Esto representa el **{porcentaje_baja:.1f}%** del total de municipios")
+            Probabilidad_baja = (len(baja_data) / len(municipios_completo)) * 100
+            st.write(f"Esto representa el **{Probabilidad_baja:.1f}%** del total de municipios")
         
         with col2:
             # Top 5 departamentos con más municipios de baja participación
@@ -2211,19 +2211,13 @@ with tab7:
 # -------------------------------
 @st.cache_data
 def cargar_datos_recomendador():
-    """
-    Carga datos específicamente para el modelo de recomendación
-    """
     try:
-        # Primero intentar cargar desde URL
         url = "https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/beneficiarios.csv"
         df = pd.read_csv(url, delimiter=';', encoding='utf-8-sig')
     except:
         try:
-            # Si falla la URL, intentar archivo local
             df = pd.read_csv("../beneficiarios.csv", delimiter=';', encoding='utf-8-sig')
         except:
-            # Como último recurso, crear datos de ejemplo
             st.error("No se pudo cargar el archivo de datos. Usando datos de ejemplo.")
             return pd.DataFrame({
                 'EDAD': [25, 30, 35, 40],
@@ -2231,8 +2225,7 @@ def cargar_datos_recomendador():
                 'DEPARTAMENTO': ['BOGOTA', 'ANTIOQUIA', 'VALLE DEL CAUCA', 'SANTANDER'],
                 'PLATAFORMA_EDUCATIVA': ['COURSERA', 'PLATZI', 'DATACAMP', 'EDX']
             })
-    
-    # Limpieza de datos
+
     df.columns = df.columns.str.replace('\ufeff', '', regex=False).str.strip()
     df = df.dropna(subset=['EDAD', 'PLATAFORMA_EDUCATIVA', 'GENERO', 'DEPARTAMENTO'])
     df['EDAD'] = df['EDAD'].astype(int)
@@ -2241,7 +2234,6 @@ def cargar_datos_recomendador():
     df['GENERO'] = df['GENERO'].str.upper().str.strip()
     return df
 
-# Cargar datos para el recomendador
 df_recomendador = cargar_datos_recomendador()
 
 # -------------------------------
@@ -2273,19 +2265,19 @@ else:
 def predecir_plataforma(edad, genero, departamento):
     if modelo_rf is None or preprocesador is None:
         return "Error: Modelo no disponible", pd.DataFrame()
-    
+
     try:
         nuevo = pd.DataFrame([[edad, genero.upper(), departamento.upper()]],
                              columns=["EDAD", "GENERO", "DEPARTAMENTO"])
         nuevo_proc = preprocesador.transform(nuevo)
 
         prediccion = modelo_rf.predict(nuevo_proc)[0]
-        Porcentajees = modelo_rf.predict_proba(nuevo_proc)[0]
+        porcentajes = modelo_rf.predict_proba(nuevo_proc)[0]
 
         plataformas = modelo_rf.classes_
         ranking = pd.DataFrame({
             "PLATAFORMA_EDUCATIVA": plataformas,
-            "Porcentaje": Porcentajees
+            "Porcentaje": porcentajes
         }).sort_values(by="Porcentaje", ascending=False)
 
         return prediccion, ranking
@@ -2293,10 +2285,10 @@ def predecir_plataforma(edad, genero, departamento):
         st.error(f"Error en la predicción: {e}")
         return "Error", pd.DataFrame()
 
+
 with tab8:
     st.header("🤖 Recomendador de Plataformas Educativas")
 
-    # Verificar si hay datos disponibles
     if len(df_recomendador) == 0:
         st.error("❌ No hay datos disponibles para el recomendador. Por favor, verifica la conexión.")
         st.stop()
@@ -2314,7 +2306,6 @@ with tab8:
     El modelo analiza patrones complejos entre miles de registros previos y determina cuál es la **plataforma más recomendada para personas con tu perfil**.
     """)
 
-    # Mostrar estadísticas del modelo
     with st.expander("📊 Estadísticas del modelo", expanded=False):
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -2326,21 +2317,16 @@ with tab8:
 
     st.subheader("📥 Ingresa tus datos:")
 
-    # Crear columnas para una mejor disposición
     col1, col2, col3 = st.columns(3)
-    
     with col1:
         edad = st.number_input("Edad", min_value=10, max_value=100, value=25)
-    
     with col2:
         generos_disponibles_rec = sorted(df_recomendador["GENERO"].dropna().unique())
         genero = st.selectbox("Género", generos_disponibles_rec)
-    
     with col3:
         departamentos_disponibles_rec = sorted(df_recomendador["DEPARTAMENTO"].dropna().unique())
         departamento = st.selectbox("Departamento", departamentos_disponibles_rec)
 
-    # Botón centrado y más atractivo
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         recomendar_btn = st.button("🔍 Recomendar Plataforma", key="recomendar_rf", type="primary", use_container_width=True)
@@ -2351,71 +2337,64 @@ with tab8:
         else:
             with st.spinner("🧠 Analizando tu perfil y generando recomendación..."):
                 pred, ranking = predecir_plataforma(edad, genero, departamento)
-                
+
                 if pred == "Error" or ranking.empty:
                     st.error("❌ Error al generar la recomendación. Intenta con otros datos.")
                 else:
-                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Porcentaje"].values[0] * 100
+                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
 
-                    # Mostrar la recomendación principal con estilo
                     st.success(f"🎯 **Plataforma recomendada: {pred}** ({porcentaje_pred:.1f}% de Porcentaje)")
-                    
-                    # Recomendación personalizada
+
                     st.markdown(f"""
                     ### 🧠 Recomendación Personalizada  
                     Para personas de género **{genero.lower()}**, con **{edad} años**, del departamento de **{departamento.title()}**,  
                     la plataforma más recomendada es 👉 **{pred}**,  
-                    con una Porcentaje del **{porcentaje_pred:.1f}%**.
+                    con un Porcentaje del **{porcentaje_pred:.1f}%**.
                     """)
 
-                    # Mostrar el ranking en dos columnas
                     col1, col2 = st.columns(2)
-                    
+
                     with col1:
-                        st.subheader("📊 Distribución de Porcentajees")
-                        # Crear una tabla más atractiva
+                        st.subheader("📊 Distribución de Porcentajes")
                         ranking_display = ranking.copy()
-                        ranking_display["Porcentaje (%)"] = (ranking_display["Porcentaje"] * 100).round(1)
+                        ranking_display["Porcentaje (%)"] = (ranking_display["Probabilidad"] * 100).round(1)
                         ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Porcentaje (%)"]]
                         ranking_display.columns = ["Plataforma", "Porcentaje (%)"]
                         st.dataframe(ranking_display, use_container_width=True)
 
                     with col2:
-                        # Gráfico mejorado
                         fig, ax = plt.subplots(figsize=(8, 6))
                         colors = plt.get_cmap('viridis')(np.linspace(0, 1, len(ranking)))
-                        bars = ax.bar(range(len(ranking)), ranking["Porcentaje"], color=colors)
-                        
-                        # Añadir valores en las barras
-                        for i, (bar, prob) in enumerate(zip(bars, ranking["Porcentaje"])):
+                        bars = ax.bar(range(len(ranking)), ranking["Probabilidad"], color=colors)
+
+                        for i, (bar, prob) in enumerate(zip(bars, ranking["Probabilidad"])):
                             height = bar.get_height()
                             ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                                    f'{prob:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
-                        
+
                         ax.set_title("Porcentaje por Plataforma", fontsize=14, fontweight='bold')
                         ax.set_ylabel("Porcentaje", fontsize=12)
                         ax.set_xlabel("Plataforma Educativa", fontsize=12)
-                        ax.set_ylim(0, max(ranking["Porcentaje"]) * 1.1)
+                        ax.set_ylim(0, max(ranking["Probabilidad"]) * 1.1)
                         ax.set_xticks(range(len(ranking)))
                         ax.set_xticklabels([plat[:8] + '...' if len(plat) > 8 else plat for plat in ranking["PLATAFORMA_EDUCATIVA"]], 
                                          rotation=45, ha='right')
                         plt.tight_layout()
                         st.pyplot(fig)
 
-                    # Mostrar información adicional
                     with st.expander("📌 Ver detalles de todas las plataformas"):
-                        # Crear una tabla más detallada
                         ranking_detailed = ranking.copy()
-                        ranking_detailed["Porcentaje (%)"] = (ranking_detailed["Porcentaje"] * 100).round(2)
+                        ranking_detailed["Porcentaje (%)"] = (ranking_detailed["Probabilidad"] * 100).round(2)
                         ranking_detailed["Recomendación"] = ranking_detailed["Porcentaje (%)"].apply(
                             lambda x: "🥇 Altamente recomendada" if x >= 30 
                                     else "🥈 Recomendada" if x >= 15 
                                     else "🥉 Considerar como opción" if x >= 5 
                                     else "⚪ Menos probable"
                         )
-                        ranking_detailed.columns = ["Plataforma", "Porcentaje", "Porcentaje (%)", "Nivel de Recomendación"]
+                        ranking_detailed.columns = ["Plataforma", "Probabilidad", "Porcentaje (%)", "Nivel de Recomendación"]
                         st.dataframe(ranking_detailed[["Plataforma", "Porcentaje (%)", "Nivel de Recomendación"]], 
                                    use_container_width=True)
+
 
 def cargar_datos():
     url = "https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/beneficiarios.csv"
