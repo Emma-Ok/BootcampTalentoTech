@@ -43,8 +43,6 @@ st.set_page_config(
 
 import streamlit as st
 
-# Botón para activar modo oscuro manualmente
-modo_oscuro = st.toggle("🌙 Activar modo oscuro")
 
 import streamlit as st
 
