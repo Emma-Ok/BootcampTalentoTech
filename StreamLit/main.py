@@ -42,8 +42,6 @@ st.set_page_config(
 )
 
 
-
-
 st.markdown("""
 <style>
     :root {
@@ -148,31 +146,36 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
     }
 
-    /* Logo fijo arriba a la derecha (fuera del sidebar) */
-    .logo-fixed {
+    /* Logos fijos arriba a la derecha */
+    .logo-container {
         position: absolute;
         top: 10px;
         right: 10px;
+        display: flex;
+        gap: 10px;
         z-index: 1000;
-        background-color: transparent;
     }
-    .logo-fixed img {
-        height: 50px;
-        opacity: 0.85;
+    .logo-container img {
+        height: 60px;
+        opacity: 0.9;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     }
-    .logo-fixed img:hover {
+    .logo-container img:hover {
         transform: scale(1.05);
         opacity: 1;
     }
 </style>
 
-<div class="logo-fixed">
+<div class="logo-container">
     <a href="https://github.com/Emma-Ok/BootcampTalentoTech" target="_blank">
         <img src="https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/Escudo-UdeA.svg.png" alt="Escudo UdeA">
     </a>
+    <a href="https://github.com/Emma-Ok/BootcampTalentoTech" target="_blank">
+        <img src="https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/logoMorado-famitpYi.png" alt="Logo FamitpYi">
+    </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 # Función para cargar datos
