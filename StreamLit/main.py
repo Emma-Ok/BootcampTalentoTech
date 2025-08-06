@@ -43,8 +43,11 @@ st.set_page_config(
 
 
 
+import streamlit as st
+
 st.markdown("""
 <style>
+    /* PALETA DE COLORES */
     :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
@@ -53,49 +56,61 @@ st.markdown("""
         --background-color: #f5f0e1;
     }
 
+    /* TITULOS */
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
         border-bottom: 2px solid var(--highlight-color);
         padding-bottom: 10px;
         margin-bottom: 20px;
+        animation: fadeIn 0.8s ease-in-out;
     }
 
+    /* METRICAS */
     [data-testid="stMetric"] {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
+        animation: fadeIn 0.8s ease-in-out;
     }
     [data-testid="stMetric"]:hover {
         transform: translateY(-5px);
     }
 
+    /* TABLAS */
     [data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.8s ease-in-out;
     }
 
-    .stSelectbox, .stSlider, .stNumberInput {
+    /* WIDGETS */
+    .stSelectbox, .stSlider, .stTextInput, .stNumberInput {
         background-color: white !important;
         border-radius: 8px !important;
         padding: 10px !important;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+        animation: fadeIn 0.8s ease-in-out;
     }
 
+    /* PESTAÑAS */
     button[data-baseweb="tab"] {
         font-weight: bold;
         border-radius: 5px 5px 0 0;
         padding: 10px 15px;
         background-color: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
         border-bottom: 3px solid var(--highlight-color);
         color: var(--text-color);
+        animation: pulse 1.5s infinite;
     }
 
+    /* FOOTER */
     .footer {
         background-color: #f0f2f6;
         padding: 10px;
@@ -106,17 +121,46 @@ st.markdown("""
         color: #555;
     }
 
+    /* GRÁFICOS */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.8s ease-in-out;
     }
 
+    /* LOADER */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
 
+    /* TOOLTIP PERSONALIZADO */
+    [title]:hover::after {
+        content: attr(title);
+        background: #444;
+        color: #fff;
+        padding: 6px 8px;
+        border-radius: 4px;
+        position: absolute;
+        top: 100%;
+        white-space: nowrap;
+        z-index: 1000;
+    }
+
+    /* ANIMACIONES */
+    @keyframes fadeIn {
+        0% {opacity: 0; transform: translateY(10px);}
+        100% {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255,110,64, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(255,110,64, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255,110,64, 0); }
+    }
+
+    /* LOGO FIJO */
     .logo-fixed {
         position: fixed;
         top: 10px;
