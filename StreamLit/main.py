@@ -2234,7 +2234,6 @@ def cargar_datos_recomendador():
     df['GENERO'] = df['GENERO'].str.upper().str.strip()
     return df
 
-# Cargar datos para el recomendador
 df_recomendador = cargar_datos_recomendador()
 
 # -------------------------------
@@ -2356,7 +2355,7 @@ with tab8:
                     col1, col2 = st.columns(2)
 
                     with col1:
-                        st.subheader("📊 Distribución de Porcentajes")
+                        st.subheader("📊 Porcentaje de Recomendación")
                         ranking_display = ranking.copy()
                         ranking_display["Porcentaje (%)"] = (ranking_display["Porcentaje"] * 100).round(1)
                         ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Porcentaje (%)"]]
@@ -2390,11 +2389,12 @@ with tab8:
                             lambda x: "🥇 Altamente recomendada" if x >= 30 
                                     else "🥈 Recomendada" if x >= 15 
                                     else "🥉 Considerar como opción" if x >= 5 
-                                    else "⚪ Menos probable"
+                                    else "⚪ Menos recomendada"
                         )
                         ranking_detailed.columns = ["Plataforma", "Porcentaje", "Porcentaje (%)", "Nivel de Recomendación"]
                         st.dataframe(ranking_detailed[["Plataforma", "Porcentaje (%)", "Nivel de Recomendación"]], 
                                    use_container_width=True)
+
 
 
 
