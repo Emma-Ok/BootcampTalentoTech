@@ -1524,9 +1524,9 @@ with tab1:
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
         <div style="text-align: center;">
             <h3>🐐 "Las Cabras" - Bootcamp TalentoTech</h3>
-            <p><strong>Proyecto desarrollado como parte del Bootcamp de Ciencia de Datos</strong></p>
+            <p><strong>Proyecto desarrollado como parte del Bootcamp de Analisis de Datos</strong></p>
             <p>📅 <strong>Año:</strong> 2025</p>
-            <p>🎓 <strong>Programa:</strong> TalentoTech - Formación en Tecnología</p>
+            <p>🎓 <strong>Programa:</strong> TalentoTech Ciencias de Datos </p>
             <p>🇨🇴 <strong>País:</strong> Colombia</p>
         </div>
     </div>
@@ -2578,6 +2578,6 @@ with tab9:
 st.markdown("""
 <div class="footer">
     <p>Desarrollado por las cabras para el bootcamp de TalentoTech - Análisis de beneficiarios de plataformas educativas en Colombia.</p>
-    <p>© 2025 - Creado con 🧠 y ❤️</p>
+    <p>© 2025 </p>
 </div>
 """, unsafe_allow_html=True)
