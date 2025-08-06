@@ -2234,6 +2234,7 @@ def cargar_datos_recomendador():
     df['GENERO'] = df['GENERO'].str.upper().str.strip()
     return df
 
+# Cargar datos para el recomendador
 df_recomendador = cargar_datos_recomendador()
 
 # -------------------------------
@@ -2341,7 +2342,7 @@ with tab8:
                 if pred == "Error" or ranking.empty:
                     st.error("❌ Error al generar la recomendación. Intenta con otros datos.")
                 else:
-                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Probabilidad"].values[0] * 100
+                    porcentaje_pred = ranking.loc[ranking["PLATAFORMA_EDUCATIVA"] == pred, "Porcentaje"].values[0] * 100
 
                     st.success(f"🎯 **Plataforma recomendada: {pred}** ({porcentaje_pred:.1f}% de Porcentaje)")
 
@@ -2357,7 +2358,7 @@ with tab8:
                     with col1:
                         st.subheader("📊 Distribución de Porcentajes")
                         ranking_display = ranking.copy()
-                        ranking_display["Porcentaje (%)"] = (ranking_display["Probabilidad"] * 100).round(1)
+                        ranking_display["Porcentaje (%)"] = (ranking_display["Porcentaje"] * 100).round(1)
                         ranking_display = ranking_display[["PLATAFORMA_EDUCATIVA", "Porcentaje (%)"]]
                         ranking_display.columns = ["Plataforma", "Porcentaje (%)"]
                         st.dataframe(ranking_display, use_container_width=True)
@@ -2365,9 +2366,9 @@ with tab8:
                     with col2:
                         fig, ax = plt.subplots(figsize=(8, 6))
                         colors = plt.get_cmap('viridis')(np.linspace(0, 1, len(ranking)))
-                        bars = ax.bar(range(len(ranking)), ranking["Probabilidad"], color=colors)
+                        bars = ax.bar(range(len(ranking)), ranking["Porcentaje"], color=colors)
 
-                        for i, (bar, prob) in enumerate(zip(bars, ranking["Probabilidad"])):
+                        for i, (bar, prob) in enumerate(zip(bars, ranking["Porcentaje"])):
                             height = bar.get_height()
                             ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                                    f'{prob:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
@@ -2375,7 +2376,7 @@ with tab8:
                         ax.set_title("Porcentaje por Plataforma", fontsize=14, fontweight='bold')
                         ax.set_ylabel("Porcentaje", fontsize=12)
                         ax.set_xlabel("Plataforma Educativa", fontsize=12)
-                        ax.set_ylim(0, max(ranking["Probabilidad"]) * 1.1)
+                        ax.set_ylim(0, max(ranking["Porcentaje"]) * 1.1)
                         ax.set_xticks(range(len(ranking)))
                         ax.set_xticklabels([plat[:8] + '...' if len(plat) > 8 else plat for plat in ranking["PLATAFORMA_EDUCATIVA"]], 
                                          rotation=45, ha='right')
@@ -2384,16 +2385,17 @@ with tab8:
 
                     with st.expander("📌 Ver detalles de todas las plataformas"):
                         ranking_detailed = ranking.copy()
-                        ranking_detailed["Porcentaje (%)"] = (ranking_detailed["Probabilidad"] * 100).round(2)
+                        ranking_detailed["Porcentaje (%)"] = (ranking_detailed["Porcentaje"] * 100).round(2)
                         ranking_detailed["Recomendación"] = ranking_detailed["Porcentaje (%)"].apply(
                             lambda x: "🥇 Altamente recomendada" if x >= 30 
                                     else "🥈 Recomendada" if x >= 15 
                                     else "🥉 Considerar como opción" if x >= 5 
                                     else "⚪ Menos probable"
                         )
-                        ranking_detailed.columns = ["Plataforma", "Probabilidad", "Porcentaje (%)", "Nivel de Recomendación"]
+                        ranking_detailed.columns = ["Plataforma", "Porcentaje", "Porcentaje (%)", "Nivel de Recomendación"]
                         st.dataframe(ranking_detailed[["Plataforma", "Porcentaje (%)", "Nivel de Recomendación"]], 
                                    use_container_width=True)
+
 
 
 def cargar_datos():
