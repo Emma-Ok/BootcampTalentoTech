@@ -44,7 +44,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Variables base */
     :root {
         --primary-color: #4e89ae;
         --secondary-color: #43658b;
@@ -53,7 +52,6 @@ st.markdown("""
         --background-color: #f5f0e1;
     }
 
-    /* Estilo para títulos */
     h1, h2, h3 {
         color: var(--text-color);
         font-weight: 700;
@@ -63,33 +61,32 @@ st.markdown("""
     }
 
     /* Estilo para métricas */
-    div[data-testid="stMetric"] {
+    [data-testid="stMetric"] {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
     }
-    div[data-testid="stMetric"]:hover {
+    [data-testid="stMetric"]:hover {
         transform: translateY(-5px);
     }
 
     /* Estilo para tablas */
-    div[data-testid="stTable"] {
+    [data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    /* Estilo para widgets */
-    div.stSelectbox, div.stSlider {
-        background-color: white;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Ajuste para widgets generales */
+    .stSelectbox, .stSlider, .stNumberInput {
+        background-color: white !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
     }
 
-    /* Pestañas */
     button[data-baseweb="tab"] {
         font-weight: bold;
         border-radius: 5px 5px 0 0;
@@ -101,7 +98,6 @@ st.markdown("""
         color: var(--text-color);
     }
 
-    /* Footer */
     .footer {
         background-color: #f0f2f6;
         padding: 10px;
@@ -112,7 +108,6 @@ st.markdown("""
         color: #555;
     }
 
-    /* Gráficos */
     .stPlotlyChart {
         background-color: white;
         padding: 10px;
@@ -120,12 +115,10 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    /* Animación de carga */
     .stProgress > div > div > div > div {
         background-color: var(--highlight-color);
     }
 
-    /* Logo fijo en esquina */
     .logo-fixed {
         position: fixed;
         top: 10px;
@@ -143,12 +136,14 @@ st.markdown("""
         opacity: 1;
     }
 </style>
+
 <div class="logo-fixed">
     <a href="https://github.com/Emma-Ok/BootcampTalentoTech" target="_blank">
         <img src="https://raw.githubusercontent.com/Emma-Ok/BootcampTalentoTech/main/Escudo-UdeA.svg.png" alt="Escudo UdeA">
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
