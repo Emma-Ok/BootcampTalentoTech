@@ -42,6 +42,8 @@ st.set_page_config(
 )
 
 
+import streamlit as st
+
 st.markdown("""
 <style>
     :root {
@@ -60,7 +62,6 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* Estilo para métricas */
     [data-testid="stMetric"] {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 10px;
@@ -72,14 +73,12 @@ st.markdown("""
         transform: translateY(-5px);
     }
 
-    /* Estilo para tablas */
     [data-testid="stTable"] {
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    /* Ajuste para widgets generales */
     .stSelectbox, .stSlider, .stNumberInput {
         background-color: white !important;
         border-radius: 8px !important;
@@ -143,6 +142,7 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
