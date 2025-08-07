@@ -106,7 +106,7 @@ Proyecto desarrollado por el equipo "Las Cabras" como parte del Bootcamp de Anal
 - Emmanuel Valbuena
 - Sebastian Boli
 - Daniel Jaramillo
-- Yoseth
+- Yoseth Mosquera
 - El Ruso
 
 ## 🌐 Enlaces
